@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>my_sales_system — DB Schema</title>
+<style>
+:root {
+  --bg: #FAFAF9; --card: #FFFFFF; --border: #E7E5E4; --border-strong: #D6D3D1;
+  --text: #1C1917; --text-soft: #57534E; --text-muted: #A8A29E;
+  --primary: #475569; --primary-dark: #334155;
+  --accent: #0EA5E9; --accent-soft: #E0F2FE;
+  --head-bg: #F5F5F4;
+  --pk: #B45309; --pk-soft: #FEF3C7;
+  --fk: #1D4ED8; --fk-soft: #DBEAFE;
+  --uq: #7C3AED; --uq-soft: #EDE9FE;
+  --idx: #047857; --idx-soft: #D1FAE5;
+  --null: #6B7280; --null-soft: #F3F4F6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.55; font-size: 14px;
+  padding: 32px 24px 64px; -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1080px; margin: 0 auto; }
+header { margin-bottom: 28px; }
+h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; margin-bottom: 4px; }
+.subtitle { color: var(--text-muted); font-size: 13px; letter-spacing: 0.02em; }
+.section-title {
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  letter-spacing: 0.08em; text-transform: uppercase; margin: 32px 0 12px;
+}
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+.er-card { padding: 20px; overflow-x: auto; }
+.mermaid { font-family: inherit; min-width: 600px; }
+
+.toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.btn {
+  background: var(--card); border: 1px solid var(--border-strong); color: var(--text);
+  padding: 6px 12px; border-radius: 8px; font: inherit; font-size: 12px;
+  cursor: pointer; transition: all 0.12s ease;
+}
+.btn:hover { border-color: var(--text-soft); background: #FCFCFB; }
+.filter-input {
+  flex: 1; min-width: 180px; background: var(--card); border: 1px solid var(--border-strong);
+  color: var(--text); padding: 6px 12px; border-radius: 8px; font: inherit; font-size: 13px;
+}
+.filter-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+details {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  margin-bottom: 10px; overflow: hidden; transition: border-color 0.12s ease;
+}
+details[open] { border-color: var(--border-strong); }
+summary {
+  list-style: none; cursor: pointer; padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px; font-weight: 600; user-select: none;
+  transition: background 0.12s ease;
+}
+summary::-webkit-details-marker { display: none; }
+summary:hover { background: rgba(28,25,23,0.025); }
+.caret { width: 14px; height: 14px; display: inline-block; transition: transform 0.15s ease; color: var(--text-muted); flex-shrink: 0; }
+details[open] .caret { transform: rotate(90deg); }
+.table-name { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; color: var(--text); }
+.table-tag { margin-left: auto; font-size: 11px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.02em; }
+
+.fields { border-top: 1px solid var(--border); overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--head-bg); }
+thead th {
+  text-align: left; font-size: 11px; font-weight: 600; color: var(--text-soft);
+  letter-spacing: 0.04em; text-transform: uppercase; padding: 10px 16px;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+tbody td { padding: 10px 16px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 13px; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(28,25,23,0.02); }
+td.col-name { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 600; color: var(--text); white-space: nowrap; }
+td.col-type { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text-soft); font-size: 12.5px; white-space: nowrap; }
+td.col-flags { white-space: nowrap; }
+td.col-note { color: var(--text-soft); }
+
+.badge {
+  display: inline-block; font-size: 10px; font-weight: 600;
+  padding: 2px 6px; border-radius: 4px; margin-right: 4px;
+  letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.4;
+}
+.badge.pk { background: var(--pk-soft); color: var(--pk); }
+.badge.fk { background: var(--fk-soft); color: var(--fk); }
+.badge.uq { background: var(--uq-soft); color: var(--uq); }
+.badge.idx { background: var(--idx-soft); color: var(--idx); }
+.badge.null { background: var(--null-soft); color: var(--null); }
+.badge.notnull { background: #FEE2E2; color: #991B1B; }
+
+.notes { padding: 12px 18px 16px; border-top: 1px solid var(--border); background: #FCFCFB; font-size: 13px; color: var(--text-soft); }
+.notes b { color: var(--text); font-weight: 600; }
+.notes ul { margin-left: 18px; margin-top: 4px; }
+.notes li { margin-bottom: 2px; }
+.notes code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #F5F5F4; padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+
+.hidden { display: none !important; }
+footer { margin-top: 40px; color: var(--text-muted); font-size: 12px; text-align: center; }
+footer code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>my_sales_system — Database Schema</h1>
+  <div class="subtitle">11 tables · generated 2026-05-14 · alembic rev <code>c7e8f9a0b123</code></div>
+</header>
+
+<div class="section-title">ER Diagram</div>
+<div class="card er-card">
+<pre class="mermaid">
+erDiagram
+    ROLES ||--o{ USERS : &quot;role_id&quot;
+    CATEGORIES ||--o{ PRODUCTS : &quot;category_id&quot;
+    USERS ||--o{ PURCHASE_ORDERS : &quot;created_by_id&quot;
+    SUPPLIERS ||--o{ PURCHASE_ORDERS : &quot;supplier_id&quot;
+    PURCHASE_ORDERS ||--o{ PURCHASE_ORDER_ITEMS : &quot;purchase_order_id&quot;
+    PRODUCTS ||--o{ PURCHASE_ORDER_ITEMS : &quot;product_id&quot;
+    USERS ||--o{ SALES_ORDERS : &quot;salesperson_id&quot;
+    USERS ||--o{ SALES_ORDERS : &quot;created_by_id&quot;
+    CUSTOMERS ||--o{ SALES_ORDERS : &quot;customer_id&quot;
+    PRODUCTS ||--o{ SALES_ORDER_ITEMS : &quot;product_id&quot;
+    SALES_ORDERS ||--o{ SALES_ORDER_ITEMS : &quot;sales_order_id&quot;
+    PRODUCTS ||--o{ STOCK_ADJUSTMENTS : &quot;product_id&quot;
+    USERS ||--o{ STOCK_ADJUSTMENTS : &quot;operator_id&quot;
+
+    ROLES {
+        int      id PK
+        string   name UK
+        string   description
+    }
+
+    USERS {
+        int      id PK
+        string   email UK
+        string   username UK
+        string   full_name
+        string   hashed_password
+        bool     is_active
+        int      role_id FK
+        datetime created_at
+        datetime updated_at
+    }
+
+    CATEGORIES {
+        int      id PK
+        string   name UK
+        string   description
+        datetime created_at
+        datetime updated_at
+    }
+
+    PRODUCTS {
+        int      id PK
+        string   sku UK
+        string   barcode UK
+        string   name
+        string   description
+        string   unit
+        numeric  unit_price
+        numeric  cost_price
+        int      stock_quantity
+        bool     is_active
+        int      category_id FK
+        datetime created_at
+        datetime updated_at
+        int      low_stock_threshold
+    }
+
+    SUPPLIERS {
+        int      id PK
+        string   name UK
+        string   contact_name
+        string   phone
+        string   email
+        string   address
+        string   tax_id
+        string   notes
+        bool     is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    PURCHASE_ORDERS {
+        int      id PK
+        string   po_number UK
+        int      supplier_id FK
+        string   status
+        numeric  total_amount
+        string   notes
+        datetime ordered_at
+        datetime received_at
+        int      created_by_id FK
+        datetime created_at
+        datetime updated_at
+    }
+
+    PURCHASE_ORDER_ITEMS {
+        int      id PK
+        int      purchase_order_id FK
+        int      product_id FK
+        int      quantity
+        numeric  unit_cost
+        numeric  subtotal
+    }
+
+    CUSTOMERS {
+        int      id PK
+        string   name UK
+        string   contact_name
+        string   phone
+        string   email
+        string   address
+        string   tax_id
+        string   notes
+        bool     is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    SALES_ORDERS {
+        int      id PK
+        string   so_number UK
+        int      customer_id FK
+        string   status
+        numeric  total_amount
+        string   notes
+        datetime ordered_at
+        datetime confirmed_at
+        int      created_by_id FK
+        datetime created_at
+        datetime updated_at
+        int      salesperson_id FK
+    }
+
+    SALES_ORDER_ITEMS {
+        int      id PK
+        int      sales_order_id FK
+        int      product_id FK
+        int      quantity
+        numeric  unit_price
+        numeric  subtotal
+    }
+
+    STOCK_ADJUSTMENTS {
+        int      id PK
+        string   adjustment_number UK
+        int      product_id FK
+        int      before_qty
+        int      change_qty
+        int      after_qty
+        string   reason
+        string   notes
+        int      operator_id FK
+        datetime adjusted_at
+        datetime created_at
+    }
+</pre>
+</div>
+
+<div class="section-title">Tables</div>
+
+<div class="toolbar">
+  <input class="filter-input" id="filter" type="search" placeholder="搜尋表名 / 欄位名…" />
+  <button class="btn" onclick="setAll(true)">全部展開</button>
+  <button class="btn" onclick="setAll(false)">全部收合</button>
+</div>
+
+<details data-table="roles">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">roles</span>
+  <span class="table-tag">3 columns · 角色主檔</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">name</td><td class="col-type">varchar(32)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge notnull">NN</span></td><td class="col-note">admin / manager / sales / warehouse</td></tr><tr><td class="col-name">description</td><td class="col-type">varchar(255)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr>
+  </tbody>
+</table>
+</div>
+<div class="notes"><b>種子資料：</b>四個固定角色 — <code>admin</code> / <code>manager</code> / <code>sales</code> / <code>warehouse</code>，由 <code>python -m app.scripts.seed</code> 建立。</div>
+</details>
+<details data-table="users">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">users</span>
+  <span class="table-tag">9 columns · 使用者帳號</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">email</td><td class="col-type">varchar(255)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">username</td><td class="col-type">varchar(64)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">full_name</td><td class="col-type">varchar(128)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">hashed_password</td><td class="col-type">varchar(255)</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">bcrypt（不用 passlib）</td></tr><tr><td class="col-name">is_active</td><td class="col-type">boolean</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">default true</td></tr><tr><td class="col-name">role_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge notnull">NN</span></td><td class="col-note">→ roles.id</td></tr><tr><td class="col-name">created_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">updated_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr>
+  </tbody>
+</table>
+</div>
+<div class="notes"><b>密碼：</b>直接用 <code>bcrypt</code> 套件雜湊（**不**經過 passlib，避免 passlib 1.7.4 + bcrypt 4.1 的相容問題）。</div>
+</details>
+<details data-table="categories">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">categories</span>
+  <span class="table-tag">5 columns · 商品分類</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">name</td><td class="col-type">varchar(64)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">description</td><td class="col-type">varchar(255)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">created_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">updated_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr>
+  </tbody>
+</table>
+</div>
+
+</details>
+<details data-table="products">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">products</span>
+  <span class="table-tag">14 columns · 商品主檔</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">sku</td><td class="col-type">varchar(64)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">barcode</td><td class="col-type">varchar(64)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge null">NULL</span></td><td class="col-note">可空</td></tr><tr><td class="col-name">name</td><td class="col-type">varchar(128)</td><td class="col-flags"><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">description</td><td class="col-type">varchar(500)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">unit</td><td class="col-type">varchar(16)</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">default "個"</td></tr><tr><td class="col-name">unit_price</td><td class="col-type">numeric(12, 2)</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">售價，default 0</td></tr><tr><td class="col-name">cost_price</td><td class="col-type">numeric(12, 2)</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">成本，receive 時寫回</td></tr><tr><td class="col-name">stock_quantity</td><td class="col-type">integer</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">僅 purchase/sale 流程可寫</td></tr><tr><td class="col-name">is_active</td><td class="col-type">boolean</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">category_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge null">NULL</span></td><td class="col-note">→ categories.id (SET NULL)</td></tr><tr><td class="col-name">created_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">updated_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">low_stock_threshold</td><td class="col-type">integer</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">0 = 關閉低庫存警示</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="notes"><b>業務規則：</b>
+<ul>
+  <li><code>stock_quantity</code> 只能透過 <code>POST /purchase-orders/{id}/receive</code> 加庫存 / <code>POST /sales-orders/{id}/confirm</code> 扣庫存。Products API 的 update 不會動它。</li>
+  <li><code>cost_price</code> 在 purchase 收貨時，會以該明細的 <code>unit_cost</code> 寫回；<code>unit_price</code> 不會被 sale 寫回。</li>
+  <li><code>low_stock_threshold</code> 設 0 等於關閉低庫存警示。</li>
+</ul></div>
+</details>
+<details data-table="suppliers">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">suppliers</span>
+  <span class="table-tag">11 columns · 供應商主檔</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">name</td><td class="col-type">varchar(128)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">contact_name</td><td class="col-type">varchar(64)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">phone</td><td class="col-type">varchar(32)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">email</td><td class="col-type">varchar(255)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">address</td><td class="col-type">varchar(255)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">tax_id</td><td class="col-type">varchar(32)</td><td class="col-flags"><span class="badge idx">IDX</span><span class="badge null">NULL</span></td><td class="col-note">統編</td></tr><tr><td class="col-name">notes</td><td class="col-type">varchar(500)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">is_active</td><td class="col-type">boolean</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">created_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">updated_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr>
+  </tbody>
+</table>
+</div>
+
+</details>
+<details data-table="purchase_orders">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">purchase_orders</span>
+  <span class="table-tag">11 columns · 進貨單表頭</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">po_number</td><td class="col-type">varchar(32)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge notnull">NN</span></td><td class="col-note">PO-YYYYMMDD-####</td></tr><tr><td class="col-name">supplier_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ suppliers.id (RESTRICT)</td></tr><tr><td class="col-name">status</td><td class="col-type">varchar(9)</td><td class="col-flags"><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">draft / received / cancelled</td></tr><tr><td class="col-name">total_amount</td><td class="col-type">numeric(14, 2)</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">notes</td><td class="col-type">varchar(500)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">ordered_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">下單時間</td></tr><tr><td class="col-name">received_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note">receive 時寫入</td></tr><tr><td class="col-name">created_by_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ users.id (RESTRICT)，建單者</td></tr><tr><td class="col-name">created_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">updated_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr>
+  </tbody>
+</table>
+</div>
+<div class="notes"><b>兩階段流程：</b>
+<ul>
+  <li><code>POST /purchase-orders</code> → 建立 draft</li>
+  <li><code>POST /purchase-orders/{id}/receive</code> → 翻成 received + 加庫存 + 寫回 <code>product.cost_price</code></li>
+  <li><code>POST /purchase-orders/{id}/cancel</code> → 翻成 cancelled（只允許 draft）</li>
+  <li>只有 draft 可編輯。</li>
+</ul></div>
+</details>
+<details data-table="purchase_order_items">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">purchase_order_items</span>
+  <span class="table-tag">6 columns · 進貨單明細</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">purchase_order_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ purchase_orders.id (CASCADE)</td></tr><tr><td class="col-name">product_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ products.id (RESTRICT)</td></tr><tr><td class="col-name">quantity</td><td class="col-type">integer</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">CHECK > 0</td></tr><tr><td class="col-name">unit_cost</td><td class="col-type">numeric(12, 2)</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">CHECK >= 0</td></tr><tr><td class="col-name">subtotal</td><td class="col-type">numeric(14, 2)</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">= quantity × unit_cost</td></tr>
+  </tbody>
+</table>
+</div>
+
+</details>
+<details data-table="customers">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">customers</span>
+  <span class="table-tag">11 columns · 客戶主檔</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">name</td><td class="col-type">varchar(128)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">contact_name</td><td class="col-type">varchar(64)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">phone</td><td class="col-type">varchar(32)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">email</td><td class="col-type">varchar(255)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">address</td><td class="col-type">varchar(255)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">tax_id</td><td class="col-type">varchar(32)</td><td class="col-flags"><span class="badge idx">IDX</span><span class="badge null">NULL</span></td><td class="col-note">統編</td></tr><tr><td class="col-name">notes</td><td class="col-type">varchar(500)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">is_active</td><td class="col-type">boolean</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">created_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">updated_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr>
+  </tbody>
+</table>
+</div>
+
+</details>
+<details data-table="sales_orders">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">sales_orders</span>
+  <span class="table-tag">12 columns · 銷貨單表頭</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">so_number</td><td class="col-type">varchar(32)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge notnull">NN</span></td><td class="col-note">SO-YYYYMMDD-####</td></tr><tr><td class="col-name">customer_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ customers.id (RESTRICT)</td></tr><tr><td class="col-name">status</td><td class="col-type">varchar(9)</td><td class="col-flags"><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">draft / confirmed / cancelled</td></tr><tr><td class="col-name">total_amount</td><td class="col-type">numeric(14, 2)</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">notes</td><td class="col-type">varchar(500)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">ordered_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">confirmed_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note">confirm 時寫入</td></tr><tr><td class="col-name">created_by_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ users.id (RESTRICT)，實際建單者</td></tr><tr><td class="col-name">created_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">updated_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">salesperson_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ users.id (RESTRICT)，業績歸屬（可與建單者不同）</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="notes"><b>兩階段流程：</b>
+<ul>
+  <li><code>POST /sales-orders</code> → 建立 draft（不檢查庫存）</li>
+  <li><code>POST /sales-orders/{id}/confirm</code> → 驗證 <code>stock_quantity ≥ quantity</code> 並原子扣庫存 + 寫 <code>confirmed_at</code></li>
+  <li><code>POST /sales-orders/{id}/cancel</code> → 翻成 cancelled（只允許 draft）</li>
+  <li><code>unit_price</code> 不會被寫回 product；商品自己持有牌價。</li>
+</ul>
+<b>salesperson_id vs created_by_id：</b>
+<ul>
+  <li><code>salesperson_id</code> = 業績歸屬，用來統計每位業務的銷售。</li>
+  <li><code>created_by_id</code> = 實際操作鍵入這張單的人。主管代鍵時兩者會不同。</li>
+</ul></div>
+</details>
+<details data-table="sales_order_items">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">sales_order_items</span>
+  <span class="table-tag">6 columns · 銷貨單明細</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">sales_order_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ sales_orders.id (CASCADE)</td></tr><tr><td class="col-name">product_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ products.id (RESTRICT)</td></tr><tr><td class="col-name">quantity</td><td class="col-type">integer</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">CHECK > 0</td></tr><tr><td class="col-name">unit_price</td><td class="col-type">numeric(12, 2)</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">CHECK >= 0</td></tr><tr><td class="col-name">subtotal</td><td class="col-type">numeric(14, 2)</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">= quantity × unit_price</td></tr>
+  </tbody>
+</table>
+</div>
+
+</details>
+<details data-table="stock_adjustments">
+<summary>
+  <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+  <span class="table-name">stock_adjustments</span>
+  <span class="table-tag">11 columns · 庫存調整 / 盤點紀錄</span>
+</summary>
+<div class="fields">
+<table>
+  <thead><tr><th>欄位</th><th>型別</th><th>約束</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td class="col-name">id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge pk">PK</span><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">adjustment_number</td><td class="col-type">varchar(32)</td><td class="col-flags"><span class="badge uq">UQ</span><span class="badge notnull">NN</span></td><td class="col-note">ADJ-YYYYMMDD-####</td></tr><tr><td class="col-name">product_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ products.id (RESTRICT)</td></tr><tr><td class="col-name">before_qty</td><td class="col-type">integer</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr><tr><td class="col-name">change_qty</td><td class="col-type">integer</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">正 = 加 / 負 = 扣，CHECK ≠ 0</td></tr><tr><td class="col-name">after_qty</td><td class="col-type">integer</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note">= before_qty + change_qty，CHECK ≥ 0</td></tr><tr><td class="col-name">reason</td><td class="col-type">varchar(8)</td><td class="col-flags"><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">surplus / shortage / scrap / other</td></tr><tr><td class="col-name">notes</td><td class="col-type">varchar(500)</td><td class="col-flags"><span class="badge null">NULL</span></td><td class="col-note"></td></tr><tr><td class="col-name">operator_id</td><td class="col-type">integer</td><td class="col-flags"><span class="badge fk">FK</span><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">→ users.id (RESTRICT)，誰按的這次調整</td></tr><tr><td class="col-name">adjusted_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge idx">IDX</span><span class="badge notnull">NN</span></td><td class="col-note">建立時間戳記</td></tr><tr><td class="col-name">created_at</td><td class="col-type">timestamptz</td><td class="col-flags"><span class="badge notnull">NN</span></td><td class="col-note"></td></tr>
+  </tbody>
+</table>
+</div>
+<div class="notes"><b>用途：</b>記錄盤點 / 庫存調整。每一筆 = 一個商品在一個時間點被人為調整。
+<ul>
+  <li>立即生效 — 建立的同時 <code>product.stock_quantity</code> 會被加上 <code>change_qty</code>。</li>
+  <li><strong>不可編輯、不可刪除</strong>。寫下去就是審計憑證。</li>
+  <li>會擋庫存變負（<code>after_qty</code> CHECK ≥ 0）。</li>
+  <li>單號自動產生 <code>ADJ-YYYYMMDD-####</code>。</li>
+  <li>RBAC：admin / manager / warehouse 可建；全員可讀。</li>
+</ul>
+<b>原因類型：</b>
+<ul>
+  <li><code>surplus</code> 盤盈 — 盤點發現比系統多</li>
+  <li><code>shortage</code> 盤虧 — 盤點發現比系統少</li>
+  <li><code>scrap</code> 報廢 — 損壞 / 過期</li>
+  <li><code>other</code> 其他 — 補正 / 樣品 / 內部使用</li>
+</ul></div>
+</details>
+
+<footer>
+  Source of truth: <code>backend/app/models/*.py</code> · 由 <code>python -m app.scripts.dump_schema_html</code> 自動產生
+</footer>
+
+</div>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      fontFamily: '-apple-system, BlinkMacSystemFont, Inter, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif',
+      fontSize: '13px',
+      primaryColor: '#FFFFFF',
+      primaryBorderColor: '#475569',
+      primaryTextColor: '#1C1917',
+      lineColor: '#78716C',
+      tertiaryColor: '#FAFAF9',
+    },
+  });
+</script>
+
+<script>
+  function setAll(open) {
+    document.querySelectorAll('details[data-table]').forEach(d => { d.open = open });
+  }
+  const filter = document.getElementById('filter');
+  filter.addEventListener('input', () => {
+    const q = filter.value.trim().toLowerCase();
+    document.querySelectorAll('details[data-table]').forEach(d => {
+      if (!q) { d.classList.remove('hidden'); return; }
+      const tableName = d.dataset.table.toLowerCase();
+      const cols = [...d.querySelectorAll('td.col-name')].map(td => td.textContent.toLowerCase());
+      const hit = tableName.includes(q) || cols.some(c => c.includes(q));
+      d.classList.toggle('hidden', !hit);
+      if (hit && !tableName.includes(q)) d.open = true;
+    });
+  });
+</script>
+
+</body>
+</html>
