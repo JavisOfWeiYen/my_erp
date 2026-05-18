@@ -3,6 +3,7 @@ from decimal import Decimal
 from enum import Enum as PyEnum
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     DateTime,
     Enum,
@@ -41,6 +42,11 @@ class SalesOrder(Base):
     )
     total_amount: Mapped[Decimal] = mapped_column(
         Numeric(14, 2), nullable=False, default=Decimal("0")
+    )
+    # True = unit_price is 含稅 (tax included). False = 未稅 (tax to be added).
+    # The whole order uses one mode; mixing modes per line is intentionally not supported.
+    is_tax_inclusive: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
     )
     notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
     ordered_at: Mapped[datetime] = mapped_column(

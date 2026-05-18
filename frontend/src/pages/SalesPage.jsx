@@ -10,13 +10,16 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   FormControl,
+  FormControlLabel,
   IconButton,
   InputLabel,
   MenuItem,
   Paper,
   Select,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -52,6 +55,7 @@ function newEmptyForm(defaultSalespersonId = '') {
   return {
     customer_id: '',
     salesperson_id: defaultSalespersonId ? String(defaultSalespersonId) : '',
+    is_tax_inclusive: false,
     notes: '',
     items: [{ ...EMPTY_ITEM }],
   }
@@ -61,6 +65,7 @@ function saleToForm(sale) {
   return {
     customer_id: String(sale.customer_id || ''),
     salesperson_id: String(sale.salesperson_id || ''),
+    is_tax_inclusive: Boolean(sale.is_tax_inclusive),
     notes: sale.notes || '',
     items: sale.items.map((it) => ({
       product_id: String(it.product_id),
@@ -74,6 +79,7 @@ function formToPayload(form) {
   return {
     customer_id: Number(form.customer_id),
     salesperson_id: Number(form.salesperson_id),
+    is_tax_inclusive: Boolean(form.is_tax_inclusive),
     notes: form.notes.trim() || null,
     items: form.items.map((it) => ({
       product_id: Number(it.product_id),
@@ -81,6 +87,19 @@ function formToPayload(form) {
       unit_price: it.unit_price || '0',
     })),
   }
+}
+
+const TAX_RATE = 0.05
+
+function computeTaxBreakdown(total, inclusive) {
+  const t = Number(total) || 0
+  if (inclusive) {
+    const untaxed = Math.round((t / (1 + TAX_RATE)) * 100) / 100
+    const tax = Math.round((t - untaxed) * 100) / 100
+    return { untaxed, tax, total: t }
+  }
+  const tax = Math.round(t * TAX_RATE * 100) / 100
+  return { untaxed: t, tax, total: t + tax }
 }
 
 function formatDateTime(value) {
@@ -473,14 +492,27 @@ export default function SalesPage() {
                   ))}
                 </Select>
               </FormControl>
-              <TextField
-                label={t('sales.notes')}
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                multiline
-                rows={2}
-                fullWidth
-              />
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }}>
+                <TextField
+                  label={t('sales.notes')}
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  multiline
+                  rows={2}
+                  sx={{ flexGrow: 1 }}
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={form.is_tax_inclusive}
+                      onChange={(e) => setForm({ ...form, is_tax_inclusive: e.target.checked })}
+                    />
+                  }
+                  label={t('sales.taxInclusive')}
+                  sx={{ whiteSpace: 'nowrap' }}
+                  title={t('sales.taxInclusiveHint')}
+                />
+              </Stack>
 
               <Typography variant="subtitle1" sx={{ mt: 1 }}>
                 {t('sales.items')}
@@ -548,9 +580,21 @@ export default function SalesPage() {
                 <Button startIcon={<AddIcon />} onClick={addItem} size="small">
                   {t('sales.addItem')}
                 </Button>
-                <Typography variant="subtitle2">
-                  {t('sales.totalAmount')}: {totalForForm}
-                </Typography>
+                <Box sx={{ textAlign: 'right' }}>
+                  {(() => {
+                    const bd = computeTaxBreakdown(totalForForm, form.is_tax_inclusive)
+                    return (
+                      <>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {t('sales.untaxedSubtotal')}: {bd.untaxed.toFixed(2)} · {t('sales.taxAmount')}: {bd.tax.toFixed(2)}
+                        </Typography>
+                        <Typography variant="subtitle2">
+                          {t('sales.totalWithTax')}: {bd.total.toFixed(2)}
+                        </Typography>
+                      </>
+                    )
+                  })()}
+                </Box>
               </Stack>
             </Stack>
           </DialogContent>
@@ -646,6 +690,33 @@ export default function SalesPage() {
                   ))}
                 </TableBody>
               </Table>
+
+              <Divider />
+              {(() => {
+                const bd = computeTaxBreakdown(detail.total_amount, detail.is_tax_inclusive)
+                return (
+                  <Box sx={{ alignSelf: 'flex-end', textAlign: 'right', minWidth: 240 }}>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="body2" color="text.secondary">
+                        {t('sales.untaxedSubtotal')}
+                      </Typography>
+                      <Typography variant="body2">{bd.untaxed.toFixed(2)}</Typography>
+                    </Stack>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="body2" color="text.secondary">
+                        {t('sales.taxAmount')}
+                      </Typography>
+                      <Typography variant="body2">{bd.tax.toFixed(2)}</Typography>
+                    </Stack>
+                    <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.5 }}>
+                      <Typography variant="subtitle2">
+                        {t('sales.totalWithTax')}
+                      </Typography>
+                      <Typography variant="subtitle2">{bd.total.toFixed(2)}</Typography>
+                    </Stack>
+                  </Box>
+                )
+              })()}
             </Stack>
           )}
         </DialogContent>

@@ -45,6 +45,7 @@ class SalesOrderItemRead(BaseModel):
 class SalesOrderCreate(BaseModel):
     customer_id: int
     salesperson_id: int
+    is_tax_inclusive: bool = False
     notes: str | None = Field(default=None, max_length=500)
     ordered_at: datetime | None = None
     items: list[SalesOrderItemCreate] = Field(min_length=1)
@@ -53,6 +54,7 @@ class SalesOrderCreate(BaseModel):
 class SalesOrderUpdate(BaseModel):
     customer_id: int | None = None
     salesperson_id: int | None = None
+    is_tax_inclusive: bool | None = None
     notes: str | None = Field(default=None, max_length=500)
     ordered_at: datetime | None = None
     items: list[SalesOrderItemCreate] | None = Field(default=None, min_length=1)
@@ -68,6 +70,7 @@ class SalesOrderRead(BaseModel):
     salesperson: UserBrief
     status: SalesOrderStatus
     total_amount: Decimal
+    is_tax_inclusive: bool
     notes: str | None
     ordered_at: datetime
     confirmed_at: datetime | None

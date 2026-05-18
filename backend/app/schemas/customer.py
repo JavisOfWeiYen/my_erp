@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -10,6 +11,8 @@ class CustomerBase(BaseModel):
     email: EmailStr | None = None
     address: str | None = Field(default=None, max_length=255)
     tax_id: str | None = Field(default=None, max_length=32)
+    capital: Decimal | None = Field(default=None, ge=0, max_digits=14, decimal_places=2)
+    payment_terms_days: int = Field(default=30, ge=0, le=365)
     notes: str | None = Field(default=None, max_length=500)
     is_active: bool = True
 
@@ -25,6 +28,8 @@ class CustomerUpdate(BaseModel):
     email: EmailStr | None = None
     address: str | None = Field(default=None, max_length=255)
     tax_id: str | None = Field(default=None, max_length=32)
+    capital: Decimal | None = Field(default=None, ge=0, max_digits=14, decimal_places=2)
+    payment_terms_days: int | None = Field(default=None, ge=0, le=365)
     notes: str | None = Field(default=None, max_length=500)
     is_active: bool | None = None
 

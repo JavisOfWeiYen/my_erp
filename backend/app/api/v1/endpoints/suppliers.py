@@ -73,7 +73,7 @@ def delete_supplier(
     supplier = supplier_crud.get(db, supplier_id)
     if not supplier:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Supplier not found")
-    if supplier.purchases:
+    if supplier.purchase_orders:
         raise HTTPException(
             status.HTTP_409_CONFLICT,
             "Supplier has purchase records and cannot be deleted; deactivate it instead",

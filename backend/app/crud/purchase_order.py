@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.crud import accounts_payable as ap_crud
 from app.models.product import Product
 from app.models.purchase_order import (
     PurchaseOrder,
@@ -110,6 +111,7 @@ def create_draft(
         supplier_id=supplier.id,
         status=PurchaseOrderStatus.draft,
         total_amount=total,
+        is_tax_inclusive=data.is_tax_inclusive,
         notes=data.notes,
         ordered_at=data.ordered_at or datetime.now(timezone.utc),
         created_by_id=created_by_id,
@@ -134,6 +136,8 @@ def update_draft(
         )
     if supplier is not None:
         order.supplier_id = supplier.id
+    if data.is_tax_inclusive is not None:
+        order.is_tax_inclusive = data.is_tax_inclusive
     if data.notes is not None:
         order.notes = data.notes
     if data.ordered_at is not None:
@@ -184,5 +188,12 @@ def receive(db: Session, order: PurchaseOrder) -> PurchaseOrder:
         product.cost_price = item.unit_cost
     order.status = PurchaseOrderStatus.received
     order.received_at = datetime.now(timezone.utc)
+    # Auto-create the payable in the same transaction.
+    ap_crud.create_from_purchase_order(
+        db,
+        order,
+        issued_at=order.received_at,
+        terms_days=order.supplier.payment_terms_days,
+    )
     db.commit()
     return get(db, order.id)

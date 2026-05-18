@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.crud import accounts_receivable as ar_crud
 from app.models.customer import Customer
 from app.models.product import Product
 from app.models.sales_order import (
@@ -130,6 +131,7 @@ def create_draft(
         salesperson_id=data.salesperson_id,
         status=SalesOrderStatus.draft,
         total_amount=total,
+        is_tax_inclusive=data.is_tax_inclusive,
         notes=data.notes,
         ordered_at=data.ordered_at or datetime.now(timezone.utc),
         created_by_id=created_by_id,
@@ -157,6 +159,8 @@ def update_draft(
     if data.salesperson_id is not None and data.salesperson_id != order.salesperson_id:
         _check_salesperson(db, data.salesperson_id)
         order.salesperson_id = data.salesperson_id
+    if data.is_tax_inclusive is not None:
+        order.is_tax_inclusive = data.is_tax_inclusive
     if data.notes is not None:
         order.notes = data.notes
     if data.ordered_at is not None:
@@ -222,5 +226,12 @@ def confirm(db: Session, order: SalesOrder) -> SalesOrder:
         product.stock_quantity = (product.stock_quantity or 0) - item.quantity
     order.status = SalesOrderStatus.confirmed
     order.confirmed_at = datetime.now(timezone.utc)
+    # Auto-create the receivable in the same transaction.
+    ar_crud.create_from_sales_order(
+        db,
+        order,
+        issued_at=order.confirmed_at,
+        terms_days=order.customer.payment_terms_days,
+    )
     db.commit()
     return get(db, order.id)

@@ -73,7 +73,7 @@ def delete_customer(
     customer = customer_crud.get(db, customer_id)
     if not customer:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Customer not found")
-    if customer.sales:
+    if customer.sales_orders:
         raise HTTPException(
             status.HTTP_409_CONFLICT,
             "Customer has sales records and cannot be deleted; deactivate it instead",

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String, func
+from sqlalchemy import Boolean, DateTime, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -16,6 +16,8 @@ class Supplier(Base):
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     tax_id: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+    # Days from issue date until payable is due; 0 = cash on delivery / 現款交易.
+    payment_terms_days: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
     notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 

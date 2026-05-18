@@ -43,6 +43,7 @@ const EMPTY_FORM = {
   email: '',
   address: '',
   tax_id: '',
+  payment_terms_days: '30',
   notes: '',
   is_active: true,
 }
@@ -55,12 +56,15 @@ function toFormValues(supplier) {
     email: supplier.email || '',
     address: supplier.address || '',
     tax_id: supplier.tax_id || '',
+    payment_terms_days:
+      supplier.payment_terms_days != null ? String(supplier.payment_terms_days) : '30',
     notes: supplier.notes || '',
     is_active: Boolean(supplier.is_active),
   }
 }
 
 function toPayload(form) {
+  const terms = form.payment_terms_days.trim()
   return {
     name: form.name.trim(),
     contact_name: form.contact_name.trim() || null,
@@ -68,6 +72,7 @@ function toPayload(form) {
     email: form.email.trim() || null,
     address: form.address.trim() || null,
     tax_id: form.tax_id.trim() || null,
+    payment_terms_days: terms === '' ? 30 : Number(terms),
     notes: form.notes.trim() || null,
     is_active: form.is_active,
   }
@@ -314,12 +319,23 @@ export default function SuppliersPage() {
                   fullWidth
                 />
               </Stack>
-              <TextField
-                label={t('suppliers.address')}
-                value={form.address}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-                fullWidth
-              />
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  label={t('suppliers.address')}
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  fullWidth
+                />
+                <TextField
+                  label={t('suppliers.paymentTerms')}
+                  value={form.payment_terms_days}
+                  onChange={(e) => setForm({ ...form, payment_terms_days: e.target.value })}
+                  type="number"
+                  inputProps={{ min: 0, max: 365, step: 1 }}
+                  helperText={t('suppliers.paymentTermsHint')}
+                  sx={{ minWidth: 180 }}
+                />
+              </Stack>
               <TextField
                 label={t('suppliers.notes')}
                 value={form.notes}

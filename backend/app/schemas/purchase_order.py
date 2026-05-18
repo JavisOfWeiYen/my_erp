@@ -37,6 +37,7 @@ class PurchaseOrderItemRead(BaseModel):
 
 class PurchaseOrderCreate(BaseModel):
     supplier_id: int
+    is_tax_inclusive: bool = False
     notes: str | None = Field(default=None, max_length=500)
     ordered_at: datetime | None = None
     items: list[PurchaseOrderItemCreate] = Field(min_length=1)
@@ -44,6 +45,7 @@ class PurchaseOrderCreate(BaseModel):
 
 class PurchaseOrderUpdate(BaseModel):
     supplier_id: int | None = None
+    is_tax_inclusive: bool | None = None
     notes: str | None = Field(default=None, max_length=500)
     ordered_at: datetime | None = None
     items: list[PurchaseOrderItemCreate] | None = Field(default=None, min_length=1)
@@ -57,6 +59,7 @@ class PurchaseOrderRead(BaseModel):
     supplier: SupplierBrief
     status: PurchaseOrderStatus
     total_amount: Decimal
+    is_tax_inclusive: bool
     notes: str | None
     ordered_at: datetime
     received_at: datetime | None

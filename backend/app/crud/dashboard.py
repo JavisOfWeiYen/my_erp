@@ -1,9 +1,11 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
 
+from app.models.accounts_payable import AccountsPayable, PayableStatus
+from app.models.accounts_receivable import AccountsReceivable, ReceivableStatus
 from app.models.product import Product
 from app.models.purchase_order import (
     PurchaseOrder,
@@ -73,6 +75,53 @@ def summary(db: Session) -> DashboardSummary:
         select(func.count(PurchaseOrder.id)).where(PurchaseOrder.status == PurchaseOrderStatus.draft)
     ) or 0
 
+    today = date.today()
+    open_ar_statuses = (ReceivableStatus.open, ReceivableStatus.partial)
+    ar_balance_total = db.scalar(
+        select(func.coalesce(func.sum(AccountsReceivable.amount_total - AccountsReceivable.paid_amount), 0))
+        .where(AccountsReceivable.status.in_(open_ar_statuses))
+    ) or Decimal("0")
+    ar_overdue_balance = db.scalar(
+        select(func.coalesce(func.sum(AccountsReceivable.amount_total - AccountsReceivable.paid_amount), 0))
+        .where(
+            and_(
+                AccountsReceivable.status.in_(open_ar_statuses),
+                AccountsReceivable.due_date < today,
+            )
+        )
+    ) or Decimal("0")
+    ar_overdue_count = db.scalar(
+        select(func.count(AccountsReceivable.id)).where(
+            and_(
+                AccountsReceivable.status.in_(open_ar_statuses),
+                AccountsReceivable.due_date < today,
+            )
+        )
+    ) or 0
+
+    open_ap_statuses = (PayableStatus.open, PayableStatus.partial)
+    ap_balance_total = db.scalar(
+        select(func.coalesce(func.sum(AccountsPayable.amount_total - AccountsPayable.paid_amount), 0))
+        .where(AccountsPayable.status.in_(open_ap_statuses))
+    ) or Decimal("0")
+    ap_overdue_balance = db.scalar(
+        select(func.coalesce(func.sum(AccountsPayable.amount_total - AccountsPayable.paid_amount), 0))
+        .where(
+            and_(
+                AccountsPayable.status.in_(open_ap_statuses),
+                AccountsPayable.due_date < today,
+            )
+        )
+    ) or Decimal("0")
+    ap_overdue_count = db.scalar(
+        select(func.count(AccountsPayable.id)).where(
+            and_(
+                AccountsPayable.status.in_(open_ap_statuses),
+                AccountsPayable.due_date < today,
+            )
+        )
+    ) or 0
+
     return DashboardSummary(
         current_month=label,
         month_sales_amount=Decimal(month_sales).quantize(Decimal("0.01")),
@@ -80,4 +129,10 @@ def summary(db: Session) -> DashboardSummary:
         low_stock_count=int(low_stock_count),
         draft_sales_count=int(draft_sales_count),
         draft_purchases_count=int(draft_purchases_count),
+        ar_balance_total=Decimal(ar_balance_total).quantize(Decimal("0.01")),
+        ar_overdue_balance=Decimal(ar_overdue_balance).quantize(Decimal("0.01")),
+        ar_overdue_count=int(ar_overdue_count),
+        ap_balance_total=Decimal(ap_balance_total).quantize(Decimal("0.01")),
+        ap_overdue_balance=Decimal(ap_overdue_balance).quantize(Decimal("0.01")),
+        ap_overdue_count=int(ap_overdue_count),
     )

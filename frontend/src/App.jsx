@@ -2,9 +2,13 @@ import { Routes, Route } from 'react-router-dom'
 
 import Layout from '@/components/Layout'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import AccountsPayablePage from '@/pages/AccountsPayablePage'
+import AccountsReceivablePage from '@/pages/AccountsReceivablePage'
+import AgingPage from '@/pages/AgingPage'
 import CategoriesPage from '@/pages/CategoriesPage'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
+import MenuManagementPage from '@/pages/MenuManagementPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import CustomersPage from '@/pages/CustomersPage'
 import InventoryPage from '@/pages/InventoryPage'
@@ -33,11 +37,15 @@ export default function App() {
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="adjustments" element={<StockAdjustmentsPage />} />
           <Route path="reports" element={<ReportsPage />} />
+          <Route path="accounts-receivable" element={<AccountsReceivablePage />} />
+          <Route path="accounts-payable" element={<AccountsPayablePage />} />
+          <Route path="aging" element={<AgingPage />} />
         </Route>
 
         <Route element={<ProtectedRoute roles={['admin']} />}>
           <Route element={<Layout />}>
             <Route path="users" element={<UsersPage />} />
+            <Route path="menu-management" element={<MenuManagementPage />} />
           </Route>
         </Route>
       </Route>

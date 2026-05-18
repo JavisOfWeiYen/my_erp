@@ -43,6 +43,8 @@ const EMPTY_FORM = {
   email: '',
   address: '',
   tax_id: '',
+  capital: '',
+  payment_terms_days: '30',
   notes: '',
   is_active: true,
 }
@@ -55,12 +57,17 @@ function toFormValues(customer) {
     email: customer.email || '',
     address: customer.address || '',
     tax_id: customer.tax_id || '',
+    capital: customer.capital != null ? String(customer.capital) : '',
+    payment_terms_days:
+      customer.payment_terms_days != null ? String(customer.payment_terms_days) : '30',
     notes: customer.notes || '',
     is_active: Boolean(customer.is_active),
   }
 }
 
 function toPayload(form) {
+  const capital = form.capital.trim()
+  const terms = form.payment_terms_days.trim()
   return {
     name: form.name.trim(),
     contact_name: form.contact_name.trim() || null,
@@ -68,9 +75,23 @@ function toPayload(form) {
     email: form.email.trim() || null,
     address: form.address.trim() || null,
     tax_id: form.tax_id.trim() || null,
+    capital: capital === '' ? null : capital,
+    payment_terms_days: terms === '' ? 30 : Number(terms),
     notes: form.notes.trim() || null,
     is_active: form.is_active,
   }
+}
+
+const capitalFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+})
+
+function formatCapital(value) {
+  if (value == null || value === '') return '—'
+  const num = Number(value)
+  if (!Number.isFinite(num)) return String(value)
+  return capitalFormatter.format(num)
 }
 
 export default function CustomersPage() {
@@ -168,7 +189,7 @@ export default function CustomersPage() {
     }
   }
 
-  const colSpan = canWrite ? 7 : 6
+  const colSpan = canWrite ? 8 : 7
 
   return (
     <Box>
@@ -217,6 +238,7 @@ export default function CustomersPage() {
               <TableCell>{t('customers.phone')}</TableCell>
               <TableCell>{t('customers.email')}</TableCell>
               <TableCell>{t('customers.taxId')}</TableCell>
+              <TableCell align="right">{t('customers.capital')}</TableCell>
               <TableCell>{t('customers.status')}</TableCell>
               {canWrite && <TableCell align="right">{t('common.actions')}</TableCell>}
             </TableRow>
@@ -242,6 +264,7 @@ export default function CustomersPage() {
                   <TableCell>{row.phone || '—'}</TableCell>
                   <TableCell>{row.email || '—'}</TableCell>
                   <TableCell>{row.tax_id || '—'}</TableCell>
+                  <TableCell align="right">{formatCapital(row.capital)}</TableCell>
                   <TableCell>
                     <Chip
                       size="small"
@@ -311,6 +334,25 @@ export default function CustomersPage() {
                   label={t('customers.taxId')}
                   value={form.tax_id}
                   onChange={(e) => setForm({ ...form, tax_id: e.target.value })}
+                  fullWidth
+                />
+              </Stack>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  label={t('customers.capital')}
+                  value={form.capital}
+                  onChange={(e) => setForm({ ...form, capital: e.target.value })}
+                  type="number"
+                  inputProps={{ min: 0, step: '0.01' }}
+                  fullWidth
+                />
+                <TextField
+                  label={t('customers.paymentTerms')}
+                  value={form.payment_terms_days}
+                  onChange={(e) => setForm({ ...form, payment_terms_days: e.target.value })}
+                  type="number"
+                  inputProps={{ min: 0, max: 365, step: 1 }}
+                  helperText={t('customers.paymentTermsHint')}
                   fullWidth
                 />
               </Stack>

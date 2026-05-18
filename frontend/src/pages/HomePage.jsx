@@ -17,6 +17,8 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
 import InboxIcon from '@mui/icons-material/Inbox'
+import RequestQuoteIcon from '@mui/icons-material/RequestQuote'
+import PaymentsIcon from '@mui/icons-material/Payments'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
 import StorefrontIcon from '@mui/icons-material/Storefront'
 import GroupsIcon from '@mui/icons-material/Groups'
@@ -185,6 +187,38 @@ export default function HomePage() {
               value={summary.draft_purchases_count}
               sub={t('home.kpi.draftPurchasesSub')}
               accent="text.secondary"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4} lg={2.4}>
+            <KpiCard
+              icon={<RequestQuoteIcon />}
+              label={t('home.kpi.arBalance')}
+              value={formatCurrency(summary.ar_balance_total)}
+              sub={
+                summary.ar_overdue_count > 0
+                  ? t('home.kpi.arOverdueSub', {
+                      amount: formatCurrency(summary.ar_overdue_balance),
+                      count: summary.ar_overdue_count,
+                    })
+                  : t('home.kpi.arNoneOverdue')
+              }
+              accent={summary.ar_overdue_count > 0 ? 'error.main' : 'primary.main'}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4} lg={2.4}>
+            <KpiCard
+              icon={<PaymentsIcon />}
+              label={t('home.kpi.apBalance')}
+              value={formatCurrency(summary.ap_balance_total)}
+              sub={
+                summary.ap_overdue_count > 0
+                  ? t('home.kpi.apOverdueSub', {
+                      amount: formatCurrency(summary.ap_overdue_balance),
+                      count: summary.ap_overdue_count,
+                    })
+                  : t('home.kpi.apNoneOverdue')
+              }
+              accent={summary.ap_overdue_count > 0 ? 'error.main' : 'primary.main'}
             />
           </Grid>
         </Grid>
