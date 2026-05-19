@@ -272,8 +272,10 @@
     "totalSales": "Total sales",
     "adjustment": "Adjustment",
     "exportExcel": "Export Excel",
+    "exportNotAvailable": "Excel export is not available for this tab",
     "tabInventory": "Inventory",
     "tabSalesperson": "Salesperson",
+    "tabMargin": "Margin",
     "salesperson": {
       "name": "Salesperson",
       "role": "Role",
@@ -283,6 +285,28 @@
       "share": "Share",
       "totalOrders": "Total orders",
       "totalAmountSum": "Total amount"
+    },
+    "margin": {
+      "scopeHint": "Showing 12-month trend and all-time product / customer rankings",
+      "trendTitle": "12-month margin trend",
+      "byProductTitle": "Top products by margin",
+      "byCustomerTitle": "Top customers by margin",
+      "yearMonth": "Month",
+      "qty": "Qty",
+      "revenue": "Revenue",
+      "cost": "Cost",
+      "grossProfit": "Gross profit",
+      "marginRate": "Margin",
+      "avgUnitPrice": "Avg price",
+      "avgUnitCost": "Avg cost",
+      "product": "Product",
+      "customer": "Customer",
+      "orderCount": "Orders",
+      "overallTitle": "Overall",
+      "overallMargin": "Overall margin",
+      "totalRevenue": "Total revenue",
+      "totalCost": "Total cost",
+      "totalGrossProfit": "Total gross profit"
     }
   },
   "accountsReceivable": {

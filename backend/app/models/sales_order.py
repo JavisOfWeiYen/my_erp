@@ -89,6 +89,10 @@ class SalesOrderItem(Base):
     __table_args__ = (
         CheckConstraint("quantity > 0", name="ck_sales_order_items_quantity_positive"),
         CheckConstraint("unit_price >= 0", name="ck_sales_order_items_unit_price_non_negative"),
+        CheckConstraint(
+            "unit_cost IS NULL OR unit_cost >= 0",
+            name="ck_sales_order_items_unit_cost_non_negative",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -100,6 +104,9 @@ class SalesOrderItem(Base):
     )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    # Snapshot of product.cost_price at the moment the parent order was confirmed.
+    # NULL for draft/cancelled rows. Backfilled for historical confirmed orders.
+    unit_cost: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     subtotal: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
 
     sales_order: Mapped["SalesOrder"] = relationship(back_populates="items")

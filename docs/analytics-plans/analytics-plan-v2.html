@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>my_erp — AI Agent 分析與 ML 規劃 v2</title>
+<style>
+  :root {
+    --bg: #FAFAF9; --card: #FFFFFF; --border: #E7E5E4; --border-strong: #D6D3D1;
+    --text: #1C1917; --text-soft: #57534E; --text-muted: #A8A29E;
+    --primary: #475569; --primary-dark: #334155;
+    --accent: #0EA5E9; --accent-soft: #E0F2FE;
+    --head-bg: #F5F5F4;
+    --num-bg: #475569; --num-fg: #FFFFFF;
+    --ok: #16A34A; --ok-soft: #DCFCE7;
+    --warn: #CA8A04; --warn-soft: #FEF9C3;
+    --danger: #DC2626; --danger-soft: #FEE2E2;
+    --tip-soft: #E0F2FE; --tip-fg: #075985;
+
+    --l1: #0EA5E9; --l1-soft: #E0F2FE;
+    --l2: #16A34A; --l2-soft: #DCFCE7;
+    --l3: #9333EA; --l3-soft: #F3E8FF;
+    --l4: #EA580C; --l4-soft: #FFEDD5;
+    --l5: #DB2777; --l5-soft: #FCE7F3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 15px;
+    padding: 32px 24px 80px; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  header { margin-bottom: 32px; }
+  .version-badge {
+    display: inline-block; background: var(--accent); color: white;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    padding: 3px 8px; border-radius: 4px; margin-right: 10px;
+    vertical-align: middle;
+  }
+  h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.015em; margin-bottom: 8px; }
+  .subtitle { color: var(--text-muted); font-size: 14px; }
+
+  .section-title {
+    font-size: 11px; font-weight: 600; color: var(--text-muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin: 36px 0 12px; padding-left: 4px;
+  }
+
+  .toc {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 24px;
+  }
+  .toc h2 { font-size: 14px; color: var(--text-soft); font-weight: 600; margin-bottom: 12px; letter-spacing: 0.02em; }
+  .toc ol { list-style: none; counter-reset: tocnum; columns: 2; column-gap: 24px; }
+  .toc ol li { counter-increment: tocnum; padding: 4px 0; break-inside: avoid; }
+  .toc ol li::before {
+    content: counter(tocnum, decimal-leading-zero);
+    display: inline-block; width: 28px;
+    color: var(--text-muted); font-family: ui-monospace, monospace; font-size: 12px;
+  }
+  .toc a { color: var(--text); text-decoration: none; }
+  .toc a:hover { color: var(--accent); text-decoration: underline; }
+
+  details.chapter {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    margin-bottom: 12px; overflow: hidden;
+  }
+  details.chapter[open] { border-color: var(--border-strong); }
+  details.chapter > summary {
+    list-style: none; cursor: pointer; padding: 18px 22px;
+    display: flex; align-items: center; gap: 12px; user-select: none;
+  }
+  details.chapter > summary::-webkit-details-marker { display: none; }
+  details.chapter > summary:hover { background: rgba(28,25,23,0.025); }
+  details.chapter > summary .caret {
+    width: 14px; height: 14px; flex-shrink: 0;
+    transition: transform 0.15s ease; color: var(--text-muted);
+  }
+  details.chapter[open] > summary .caret { transform: rotate(90deg); }
+  details.chapter > summary .layer-pill {
+    width: 56px; height: 28px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 11px; letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+  details.chapter > summary .title { font-weight: 600; font-size: 17px; flex-grow: 1; }
+  details.chapter > summary .meta { font-size: 11px; color: var(--text-muted); letter-spacing: 0.02em; flex-shrink: 0; }
+
+  .layer-pill.l1 { background: var(--l1-soft); color: var(--l1); }
+  .layer-pill.l2 { background: var(--l2-soft); color: var(--l2); }
+  .layer-pill.l3 { background: var(--l3-soft); color: var(--l3); }
+  .layer-pill.l4 { background: var(--l4-soft); color: var(--l4); }
+  .layer-pill.l5 { background: var(--l5-soft); color: var(--l5); }
+
+  .body { padding: 8px 28px 28px 28px; }
+  .body h3 {
+    font-size: 14px; color: var(--text-soft); font-weight: 600;
+    margin: 22px 0 10px; letter-spacing: 0.03em; text-transform: uppercase;
+  }
+  .body h4 {
+    font-size: 14px; color: var(--text); font-weight: 600;
+    margin: 18px 0 8px;
+  }
+  .body p { margin-bottom: 12px; color: var(--text); }
+  .body p.lead { font-size: 16px; color: var(--text-soft); margin-bottom: 16px; }
+
+  ul.tight, ol.tight { padding-left: 22px; margin: 6px 0 14px; }
+  ul.tight li, ol.tight li { margin-bottom: 6px; }
+
+  table.data {
+    width: 100%; border-collapse: collapse; margin: 12px 0;
+    font-size: 14px; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  table.data th, table.data td {
+    text-align: left; padding: 10px 14px; vertical-align: top;
+    border-bottom: 1px solid var(--border);
+  }
+  table.data th {
+    background: var(--head-bg); color: var(--text-soft);
+    font-weight: 600; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  table.data tr:last-child td { border-bottom: none; }
+  table.data td.mono { font-family: ui-monospace, "Fira Code", monospace; font-size: 13px; }
+  table.data td.center { text-align: center; }
+
+  .callout {
+    margin: 14px 0; padding: 12px 16px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--card);
+    font-size: 14px; line-height: 1.6;
+  }
+  .callout .label {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 4px; margin-right: 8px;
+  }
+  .callout.tip   { background: var(--tip-soft); border-color: #BAE6FD; }
+  .callout.tip .label   { background: var(--accent); color: white; }
+  .callout.warn { background: var(--warn-soft); border-color: #FDE68A; }
+  .callout.warn .label  { background: var(--warn); color: white; }
+  .callout.danger { background: var(--danger-soft); border-color: #FECACA; }
+  .callout.danger .label { background: var(--danger); color: white; }
+  .callout.ok { background: var(--ok-soft); border-color: #BBF7D0; }
+  .callout.ok .label { background: var(--ok); color: white; }
+
+  code.endpoint, code.inline {
+    font-family: ui-monospace, "Fira Code", monospace; font-size: 13px;
+    background: var(--head-bg); padding: 2px 8px; border-radius: 4px;
+    color: var(--primary-dark); white-space: nowrap;
+  }
+
+  pre.code {
+    background: #1C1917; color: #E7E5E4; padding: 16px 20px;
+    border-radius: 10px; overflow-x: auto; font-size: 13px;
+    line-height: 1.55; margin: 12px 0;
+    font-family: ui-monospace, "Fira Code", monospace;
+  }
+  pre.code .k { color: #93C5FD; }
+  pre.code .s { color: #86EFAC; }
+  pre.code .c { color: #78716C; font-style: italic; }
+
+  .scenario {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0;
+  }
+  .scenario .role {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em; padding: 3px 8px; border-radius: 4px;
+    margin-right: 8px; margin-bottom: 8px;
+  }
+  .scenario .role.boss { background: var(--l5-soft); color: var(--l5); }
+  .scenario .role.sales { background: var(--l2-soft); color: var(--l2); }
+  .scenario .role.warehouse { background: var(--l4-soft); color: var(--l4); }
+  .scenario .role.finance { background: var(--l3-soft); color: var(--l3); }
+  .scenario h4 { margin-top: 0; margin-bottom: 10px; }
+
+  .demo-q {
+    background: var(--head-bg); border-left: 3px solid var(--accent);
+    padding: 10px 14px; margin: 8px 0; font-size: 14px;
+    border-radius: 0 8px 8px 0;
+  }
+  .demo-q.user { border-left-color: var(--l5); background: #FAF5FA; }
+  .demo-q.tool { border-left-color: var(--warn); background: #FFFBEB; font-family: ui-monospace, monospace; font-size: 13px; }
+  .demo-q .who {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    color: var(--accent); margin-right: 6px; letter-spacing: 0.05em;
+  }
+  .demo-q.user .who { color: var(--l5); }
+  .demo-q.tool .who { color: var(--warn); }
+
+  .needs {
+    background: var(--head-bg); border-radius: 8px; padding: 10px 14px;
+    margin-top: 12px; font-size: 13px;
+  }
+  .needs .needs-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--text-muted); text-transform: uppercase; margin-right: 8px;
+  }
+
+  .stages {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+    margin: 16px 0;
+  }
+  .stage {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px;
+  }
+  .stage .s-num {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    letter-spacing: 0.1em; margin-bottom: 6px;
+  }
+  .stage .s-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; color: var(--text); }
+  .stage .s-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+  .stage .s-body { font-size: 12px; color: var(--text-soft); line-height: 1.55; }
+  @media (max-width: 860px) {
+    .stages { grid-template-columns: 1fr 1fr; }
+  }
+
+  .badge {
+    display: inline-block; padding: 1px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    margin: 0 2px;
+  }
+  .badge.easy { background: var(--ok-soft); color: #065F46; }
+  .badge.medium { background: var(--warn-soft); color: #92400E; }
+  .badge.hard { background: var(--danger-soft); color: #991B1B; }
+  .badge.must { background: var(--accent-soft); color: #075985; }
+  .badge.nice { background: var(--head-bg); color: var(--text-soft); }
+  .badge.skip { background: var(--danger-soft); color: #991B1B; text-decoration: line-through; }
+
+  .anchor { display: block; height: 1px; visibility: hidden; }
+
+  .diff-table td.add { background: #ECFDF5; }
+  .diff-table td.remove { background: #FEF2F2; text-decoration: line-through; color: var(--text-muted); }
+  .diff-table td.change { background: #FEF9C3; }
+
+  footer {
+    margin-top: 50px; padding-top: 24px; border-top: 1px solid var(--border);
+    color: var(--text-muted); font-size: 12px; text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1><span class="version-badge">v2</span>my_erp — AI Agent 分析與 ML 規劃</h1>
+  <div class="subtitle">v1 是「能做什麼」的目錄；v2 是「demo 要講什麼故事」的劇本——從場景回推資料、分析、模型、工具。</div>
+</header>
+
+<div class="toc">
+  <h2>目錄</h2>
+  <ol>
+    <li><a href="#why-v2">為什麼有 v2</a></li>
+    <li><a href="#principles">v2 設計原則</a></li>
+    <li><a href="#scenarios">五個 Demo 劇本</a></li>
+    <li><a href="#seed-story">資料故事設計（Seed Blueprint）</a></li>
+    <li><a href="#capabilities">分析能力清單（收斂版）</a></li>
+    <li><a href="#ml-choices">ML 模型選擇（精簡版）</a></li>
+    <li><a href="#agent-arch">AI Agent 架構與 Tool Schema</a></li>
+    <li><a href="#roadmap">落地路線 v2（5 個 Stage）</a></li>
+    <li><a href="#kpi">Demo 成功 KPI</a></li>
+    <li><a href="#diff-v1">v1 → v2 變動明細</a></li>
+  </ol>
+</div>
+
+
+<span class="anchor" id="why-v2"></span>
+<div class="section-title">A · 改版理由</div>
+
+<details class="chapter" open>
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill" style="background: var(--head-bg); color: var(--text-soft);">背景</span>
+    <span class="title">為什麼有 v2</span>
+  </summary>
+  <div class="body">
+    <p class="lead">v1 的盲點：列了一堆「可以做的分析與模型」，但沒回答最重要的問題——<strong>demo 那 5 分鐘要讓觀眾看到什麼？</strong></p>
+
+    <p>v1 的四層結構（描述 → 毛利 → 預測 → Agent）邏輯清楚，但容易讓實作落入「把每層的清單都做完」的陷阱。對 AI agent demo 而言，做了 8 個模型但講不出故事，比做了 3 個但每個都有戲劇張力差。</p>
+
+    <p>v2 改成<strong>劇本驅動</strong>：先寫好 5 個 demo 劇本，每個劇本盤點需要什麼資料、什麼 endpoint、什麼模型；任何不在劇本裡的東西一律砍掉或延後。</p>
+
+    <div class="callout tip">
+      <span class="label">核心思維</span>
+      <strong>Demo 的單位是「對話」不是「功能」。</strong>觀眾記得住的是「AI 看出 5 月毛利下滑是因為原料漲價」，不是「我們上線了 8 個 ML endpoint」。
+    </div>
+  </div>
+</details>
+
+
+<span class="anchor" id="principles"></span>
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill" style="background: var(--head-bg); color: var(--text-soft);">原則</span>
+    <span class="title">v2 設計原則</span>
+  </summary>
+  <div class="body">
+    <ol class="tight">
+      <li><strong>劇本先於功能。</strong>每個能力都要對應到至少一個 demo 劇本中的 turn，否則不做。</li>
+      <li><strong>可解釋 &gt; 精準度。</strong>Logistic Regression 講得出「為什麼這個客戶會流失」比 XGBoost 的 F1=0.87 更有 demo 張力。</li>
+      <li><strong>資料是劇本的一部分。</strong>Seed 不是亂塞，是編劇——某客戶在某月開始流失、某商品 Q4 暴漲、某供應商曾漲價 15%。</li>
+      <li><strong>Agent 可以說「我不知道」。</strong>Demo 要呈現 agent 邊界，比假裝萬能更可信。</li>
+      <li><strong>寫操作要 human-in-the-loop。</strong>建單、確認、作廢一律 agent 出草稿、user 拍板。</li>
+    </ol>
+  </div>
+</details>
+
+
+<span class="anchor" id="scenarios"></span>
+<div class="section-title">B · 核心：五個 Demo 劇本</div>
+
+<details class="chapter" open>
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill l5">S1</span>
+    <span class="title">劇本 1：老闆早晨簡報</span>
+    <span class="meta">主動式洞察 · 2 分鐘</span>
+  </summary>
+  <div class="body">
+    <p class="lead">老闆早上開電腦，agent 直接給 3-5 行重點，並準備好 follow-up。</p>
+
+    <div class="scenario">
+      <span class="role boss">老闆</span>
+      <div class="demo-q"><span class="who">AGENT</span>早安。昨日營收 NT$72,400（+18% vs 上週同日）。三件事建議關注：<br>
+      <strong>1.</strong> 客戶「祥豐」帳款已逾期 32 天，歷史逾期率 60%——建議今日致電。<br>
+      <strong>2.</strong> 商品「LED-A100」庫存剩 12 件，依當前銷售節奏 5 月 28 日缺貨——建議今日下進貨單。<br>
+      <strong>3.</strong> 本月毛利率 18.2%（上月 21.5%），主因是 SUP-003 原料漲價 12%——是否要我列出受影響的銷貨單？</div>
+      <div class="demo-q user"><span class="who">USER</span>列一下第 3 點。</div>
+      <div class="demo-q"><span class="who">AGENT</span>本月共 23 張銷貨單使用受漲價影響的原料，其中毛利率低於 10% 的有 5 張……</div>
+    </div>
+
+    <div class="needs">
+      <span class="needs-label">需要的能力</span>
+      L1 銷售趨勢 · L1 AR 帳齡 · L1 客戶逾期歷史 · L2 毛利時序 · L3.1 需求預測 · L3.2 補貨建議 · L4 Daily briefing prompt
+    </div>
+    <div class="callout ok">
+      <span class="label">Demo 賣點</span>
+      Agent 主動發現問題、跨表追根究底，老闆只需要決定要不要 drill-down。
+    </div>
+  </div>
+</details>
+
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill l2">S2</span>
+    <span class="title">劇本 2：業務的客戶名單</span>
+    <span class="meta">RFM + 流失預警 · 1.5 分鐘</span>
+  </summary>
+  <div class="body">
+    <p class="lead">業務每週開晨會前問 agent「這週要打給誰」。</p>
+
+    <div class="scenario">
+      <span class="role sales">業務</span>
+      <div class="demo-q user"><span class="who">USER</span>本週要關心的客戶？</div>
+      <div class="demo-q"><span class="who">AGENT</span>三類建議：<br>
+      <strong>高價值但開始流失（3 家）</strong>：祥豐（RFM 554→154，已 45 天沒下單）、泰昌（RFM 553→253）、宏億（RFM 545→145）。<br>
+      <strong>VIP 例行維繫（2 家）</strong>：大同（RFM 555，本月已下單 3 次）、和欣（RFM 554）。<br>
+      <strong>逾期需催收（1 家）</strong>：旭光，逾期 38 天 NT$23,500。</div>
+      <div class="demo-q user"><span class="who">USER</span>祥豐為什麼會流失？</div>
+      <div class="demo-q"><span class="who">AGENT</span>祥豐過去 12 個月主要購買的「LED-A100」系列，3 月起每月銷量從 80→45→0。同期間我們對該系列的售價漲了 8%（因進貨成本上升）。建議：可以提供下次採購折扣，或推薦替代品 LED-A105（毛利相近、規格類似）。</div>
+    </div>
+
+    <div class="needs">
+      <span class="needs-label">需要的能力</span>
+      L3.3 RFM 分群 · L3.3 流失偵測 · L1 客戶購買歷史 · L1 商品價格時序 · L4 多輪追問（context across turns）
+    </div>
+  </div>
+</details>
+
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill l4">S3</span>
+    <span class="title">劇本 3：倉管的補貨對話</span>
+    <span class="meta">需求預測 + agentic action · 2 分鐘</span>
+  </summary>
+  <div class="body">
+    <p class="lead">倉管不會分析時序模型，但會問「下個月哪些要先補」。</p>
+
+    <div class="scenario">
+      <span class="role warehouse">倉管</span>
+      <div class="demo-q user"><span class="who">USER</span>下個月需要補哪些？</div>
+      <div class="demo-q"><span class="who">AGENT</span>依需求預測 + 供應商交期，本月內需下單的有 5 項：<br>
+      <table class="data" style="margin: 8px 0;">
+        <thead><tr><th>商品</th><th>現庫存</th><th>預測下月銷</th><th>建議下單</th><th>主供應商</th></tr></thead>
+        <tbody>
+          <tr><td>LED-A100</td><td>12</td><td>240</td><td>300</td><td>大宇</td></tr>
+          <tr><td>SW-B205</td><td>45</td><td>180</td><td>200</td><td>佳能</td></tr>
+          <tr><td>CAB-C12</td><td>8</td><td>95</td><td>150</td><td>大宇</td></tr>
+        </tbody>
+      </table></div>
+      <div class="demo-q user"><span class="who">USER</span>大宇那兩項合一張單，建好給我。</div>
+      <div class="demo-q tool"><span class="who">TOOL</span>create_purchase_order_draft(supplier="大宇", items=[{LED-A100, 300}, {CAB-C12, 150}])</div>
+      <div class="demo-q"><span class="who">AGENT</span>已建立 PO-20260520-0003（draft）共 2 項、預估金額 NT$54,200。要看明細或直接送出？</div>
+    </div>
+
+    <div class="needs">
+      <span class="needs-label">需要的能力</span>
+      L3.1 需求預測 · L3.2 補貨建議 · 供應商 lead_time · L4 寫入 tool（建草稿）· human-in-the-loop 確認流
+    </div>
+    <div class="callout warn">
+      <span class="label">關鍵設計</span>
+      Agent 只建 <strong>draft</strong>，永遠不主動 receive／confirm。寫入動作走「agent 建草稿 → 使用者一鍵送出」雙步驟。
+    </div>
+  </div>
+</details>
+
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill l3">S4</span>
+    <span class="title">劇本 4：會計的現金流規劃</span>
+    <span class="meta">AR 帳齡 + AP 排程 · 1.5 分鐘</span>
+  </summary>
+  <div class="body">
+    <p class="lead">會計問 agent「下個月夠不夠付款」。</p>
+
+    <div class="scenario">
+      <span class="role finance">會計</span>
+      <div class="demo-q user"><span class="who">USER</span>下個月現金流預估？</div>
+      <div class="demo-q"><span class="who">AGENT</span>依 AR 帳齡 + AP due date：<br>
+      預期收款 NT$485,000（其中 NT$32,000 屬高逾期風險客戶，建議打 70% 折扣）<br>
+      預期付款 NT$312,000<br>
+      <strong>淨流入 NT$173,000</strong>（含風險折扣後 NT$163,400）<br>
+      週次拆解：W1 +18K · W2 +52K · W3 +71K · W4 +32K（風險集中在 W4，因祥豐的 NT$28K 應收）。</div>
+      <div class="demo-q user"><span class="who">USER</span>有沒有可以延付的 AP？</div>
+      <div class="demo-q"><span class="who">AGENT</span>三家供應商的付款條件還有彈性空間：大宇（合約 30 天、平均我們付 18 天）、佳能（合約 45 天、平均 22 天）、安捷（合約 30 天、平均 25 天）。最有空間的是大宇與佳能，可延 7-15 天但建議保留信用評等。</div>
+    </div>
+
+    <div class="needs">
+      <span class="needs-label">需要的能力</span>
+      L1 AR/AP 帳齡（已有）· L3.4 逾期風險預測 · L1 DPO 分析 · 供應商歷史付款行為
+    </div>
+  </div>
+</details>
+
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill l1">S5</span>
+    <span class="title">劇本 5：診斷型對話（為什麼 X 變化了）</span>
+    <span class="meta">跨表推理 · 2-3 分鐘</span>
+  </summary>
+  <div class="body">
+    <p class="lead">最能秀 agent 推理能力的場景——使用者問「為什麼」，agent 自己拆解、查證、結論。</p>
+
+    <div class="scenario">
+      <span class="role boss">老闆</span>
+      <div class="demo-q user"><span class="who">USER</span>為什麼 5 月毛利下滑？</div>
+      <div class="demo-q tool"><span class="who">TOOL</span>get_monthly_report(year=2026, month=5) → 營收 NT$1.24M（vs 4 月 1.18M, +5%）</div>
+      <div class="demo-q tool"><span class="who">TOOL</span>get_gross_margin(year=2026, month=5) → 毛利率 18.2%（vs 4 月 21.5%）</div>
+      <div class="demo-q tool"><span class="who">TOOL</span>get_cost_trend(months=6) → SUP-003 cost_price 4 月 NT$45 → 5 月 NT$52（+15.6%）</div>
+      <div class="demo-q tool"><span class="who">TOOL</span>get_affected_products(supplier_id=3) → LED-A100, LED-A105, SW-B205</div>
+      <div class="demo-q"><span class="who">AGENT</span>5 月營收實際成長 5%，但毛利率從 21.5% 跌到 18.2%（淨毛利 -10%）。<br>
+      <strong>主因</strong>：供應商「大宇」5 月起原料漲價 15.6%，影響 3 項熱銷商品（LED-A100、LED-A105、SW-B205），這 3 項占 5 月銷貨 42%。<br>
+      <strong>建議</strong>：<br>
+      <span style="padding-left: 12px;">a) 售價調整：這 3 項建議跟漲 6-8%（仍低於同業）。</span><br>
+      <span style="padding-left: 12px;">b) 找替代供應商：大宇報價已連續兩個月上調，可詢比安捷。</span><br>
+      <span style="padding-left: 12px;">c) 庫存策略：若預期再漲，可考慮預先囤貨——但 LED-A100 周轉率高，囤貨綁定資金約 NT$200K，是否要建立採購建議？</span></div>
+    </div>
+
+    <div class="needs">
+      <span class="needs-label">需要的能力</span>
+      L1 月報、L2 毛利時序、L1 進貨成本時序、L1 供應商-商品關聯查詢、L4 多步驟工具編排（agent 自行決定查詢順序）
+    </div>
+    <div class="callout ok">
+      <span class="label">Demo 賣點</span>
+      這是<strong>整個 demo 最有戲劇張力的場景</strong>——使用者只問一個「為什麼」，agent 自己拆解出 4 個工具呼叫、組合成完整因果鏈與行動建議。
+    </div>
+  </div>
+</details>
+
+
+<span class="anchor" id="seed-story"></span>
+<div class="section-title">C · 前置：資料故事</div>
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill" style="background: var(--head-bg); color: var(--text-soft);">資料</span>
+    <span class="title">資料故事設計（Seed Blueprint）</span>
+  </summary>
+  <div class="body">
+    <p class="lead">五個劇本所有「巧合」都來自 seed data 的事先編劇。Seed generator 不是 faker，是劇作家。</p>
+
+    <h3>核心結構</h3>
+    <ul class="tight">
+      <li><strong>時序跨度</strong>：18 個月（2024-12 ~ 2026-05），讓 12 月季節性訊號清楚。</li>
+      <li><strong>規模</strong>：30 商品 / 6 分類、25 客戶、12 供應商、8 員工（含 5 業務）、約 800 銷貨單、400 進貨單、120 盤點調整、200 AR、120 AP、180 收付款記錄。</li>
+      <li><strong>密度</strong>：每月平均 ~45 銷貨、~22 進貨；冬季旺月（11-2 月）+30%，夏季淡月（6-8 月）-15%。</li>
+    </ul>
+
+    <h3>編劇 — 客戶故事</h3>
+    <table class="data">
+      <thead><tr><th>客戶</th><th>角色</th><th>故事</th><th>Demo 用途</th></tr></thead>
+      <tbody>
+        <tr><td>大同</td><td>VIP</td><td>每月穩定 5-8 單、從未逾期、毛利率高</td><td>RFM 555 範例、好客戶基準</td></tr>
+        <tr><td>祥豐</td><td>正在流失</td><td>2025 前每月 6+ 單；2026-03 後驟降；歷史逾期率 60%</td><td>S2 流失預警、S1 早安重點</td></tr>
+        <tr><td>泰昌</td><td>逐月衰退</td><td>頻率不變但金額逐月下降 8%</td><td>RFM Monetary 下滑案例</td></tr>
+        <tr><td>旭光</td><td>頑固逾期戶</td><td>金額不大但每筆都壓滿 60 天</td><td>S4 現金流風險範例</td></tr>
+        <tr><td>宏億</td><td>季節型</td><td>只在 Q4 大量採購、Q2-Q3 幾乎不出現</td><td>季節性分群測試</td></tr>
+        <tr><td>和欣</td><td>議價兇</td><td>採購量大、毛利率僅 8%（其他客戶平均 22%）</td><td>L2 毛利分析「大買家≠好客戶」</td></tr>
+        <tr><td>新茂</td><td>新客戶成長中</td><td>2026-01 才出現、每月成長 30%</td><td>RFM Recency 高分案例</td></tr>
+        <tr><td>其他 18 家</td><td>背景</td><td>正常分布</td><td>避免劇本客戶過度突兀</td></tr>
+      </tbody>
+    </table>
+
+    <h3>編劇 — 商品故事</h3>
+    <table class="data">
+      <thead><tr><th>商品</th><th>故事</th><th>Demo 用途</th></tr></thead>
+      <tbody>
+        <tr><td>LED-A100</td><td>主力熱銷、Q4 旺季 +50%、2026-05 因供應商漲價成本 +15.6%</td><td>S1 補貨警示、S5 毛利下滑主因</td></tr>
+        <tr><td>LED-A105</td><td>跟 A100 規格類似、毛利率相近</td><td>S2 替代品推薦</td></tr>
+        <tr><td>SW-B205</td><td>跟著 LED-A100 賣（綁定購買）、共用供應商 SUP-003</td><td>S5 受漲價牽連連鎖</td></tr>
+        <tr><td>CAB-C12</td><td>低銷量但毛利率 45%</td><td>L1 ABC 分析「銷量低≠不重要」</td></tr>
+        <tr><td>OBS-X99</td><td>過去 6 個月零銷量、佔庫存 NT$80K</td><td>L1 呆滯庫存範例</td></tr>
+        <tr><td>其他 25 項</td><td>正常分布</td><td>背景</td></tr>
+      </tbody>
+    </table>
+
+    <h3>編劇 — 供應商故事</h3>
+    <ul class="tight">
+      <li><strong>大宇 (SUP-003)</strong>：2026-04、2026-05 連續漲價（5%、10%）——觸發 S5 故事。lead_time 7 天。</li>
+      <li><strong>佳能 (SUP-005)</strong>：穩定、價格從未調整、lead_time 10 天，但我們平均只用 22 天才付款（合約 45 天）——S4 延付空間。</li>
+      <li><strong>安捷 (SUP-008)</strong>：跟大宇有重疊品項但價格略高 3%——S5 替代供應商建議。</li>
+    </ul>
+
+    <h3>實作方式</h3>
+    <ul class="tight">
+      <li>新 script：<code class="endpoint">app/scripts/seed_demo_data.py</code>（idempotent、可 reset）。</li>
+      <li>用 <code class="inline">faker</code> 補背景客戶/商品；劇本角色寫死。</li>
+      <li>分三段：（a）static fixtures（角色、商品、供應商）；（b）時序生成（每月 loop，依角色行為 sample）；（c）after-the-fact 注入（在 5 月份對 SUP-003 cost 動手腳）。</li>
+      <li>每次跑 <code class="inline">--reset</code> 會清掉前一次 demo 資料、保留真實使用者資料（用 <code class="inline">is_demo</code> 旗標或專屬 user 隔離）。</li>
+    </ul>
+
+    <div class="callout warn">
+      <span class="label">注意</span>
+      Demo seed 與真實使用者操作不能混在同一 DB schema 上；建議用 <code class="inline">--demo</code> profile（不同 SQLite 檔）或加 <code class="inline">is_demo</code> 欄位過濾。
+    </div>
+  </div>
+</details>
+
+
+<span class="anchor" id="capabilities"></span>
+<div class="section-title">D · 收斂後的能力清單</div>
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill l1">L1</span>
+    <span class="title">描述性分析</span>
+    <span class="meta">純 SQL/pandas · 無 ML</span>
+  </summary>
+  <div class="body">
+    <table class="data">
+      <thead><tr><th>能力</th><th>Endpoint</th><th>劇本</th><th>狀態</th></tr></thead>
+      <tbody>
+        <tr><td>月報（已有）</td><td><code class="endpoint">/inventory/monthly-report</code></td><td>S1, S5</td><td><span class="badge nice">✓ 已上線</span></td></tr>
+        <tr><td>AR/AP 帳齡（已有）</td><td><code class="endpoint">/accounts-(receivable\|payable)/aging</code></td><td>S1, S4</td><td><span class="badge nice">✓ 已上線</span></td></tr>
+        <tr><td>業務員月報（已有）</td><td><code class="endpoint">/inventory/salesperson-report</code></td><td>—</td><td><span class="badge nice">✓ 已上線</span></td></tr>
+        <tr><td>銷售趨勢（含同比）</td><td><code class="endpoint">/analytics/sales-trend?group_by=&compare=yoy</code></td><td>S1, S5</td><td><span class="badge must">必做</span></td></tr>
+        <tr><td>客戶購買歷史</td><td><code class="endpoint">/analytics/customer/{id}/history</code></td><td>S2</td><td><span class="badge must">必做</span></td></tr>
+        <tr><td>商品成本時序</td><td><code class="endpoint">/analytics/product/{id}/cost-trend</code></td><td>S5</td><td><span class="badge must">必做</span></td></tr>
+        <tr><td>供應商-商品關聯</td><td><code class="endpoint">/analytics/supplier/{id}/products</code></td><td>S5</td><td><span class="badge must">必做</span></td></tr>
+        <tr><td>DPO 分析</td><td><code class="endpoint">/analytics/dpo</code></td><td>S4</td><td><span class="badge must">必做</span></td></tr>
+        <tr><td>ABC / Pareto</td><td><code class="endpoint">/analytics/abc?dim=product\|customer</code></td><td>—</td><td><span class="badge nice">加分</span></td></tr>
+        <tr><td>呆滯庫存</td><td><code class="endpoint">/analytics/dead-stock?days=90</code></td><td>—</td><td><span class="badge nice">加分</span></td></tr>
+        <tr><td>庫存損耗分析</td><td>聚合 stock_adjustments</td><td>—</td><td><span class="badge nice">加分</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</details>
+
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill l2">L2</span>
+    <span class="title">毛利分析</span>
+    <span class="meta">Schema 改動 · 無 ML</span>
+  </summary>
+  <div class="body">
+    <p>新增欄位 <code class="endpoint">sales_order_items.unit_cost</code>（<code class="inline">Numeric(14, 2)</code>、nullable），confirm 當下快照 <code class="endpoint">product.cost_price</code>。歷史單可用 backfill（沿用當時最近一次進貨價，無進貨則用 0）。</p>
+
+    <table class="data">
+      <thead><tr><th>能力</th><th>Endpoint</th><th>劇本</th></tr></thead>
+      <tbody>
+        <tr><td>商品毛利率排行</td><td><code class="endpoint">/analytics/margin/by-product</code></td><td>—</td></tr>
+        <tr><td>客戶毛利率排行</td><td><code class="endpoint">/analytics/margin/by-customer</code></td><td>S2（和欣案例）</td></tr>
+        <tr><td>毛利時序 + 歸因</td><td><code class="endpoint">/analytics/margin/trend?breakdown=cost\|price</code></td><td>S1, S5</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <span class="label">關鍵</span>
+      <strong>毛利時序帶歸因</strong>是 v2 比 v1 強化的部分——不只給數字，給出「毛利下滑是因為成本上漲還是售價下降」的歸因（用 price/cost 變動分解）。S5 劇本仰賴這個。
+    </div>
+  </div>
+</details>
+
+
+<span class="anchor" id="ml-choices"></span>
+<div class="section-title">E · ML 模型</div>
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill l3">L3</span>
+    <span class="title">ML 模型選擇（精簡版）</span>
+    <span class="meta">統一原則：可解釋 &gt; 精準度</span>
+  </summary>
+  <div class="body">
+    <p class="lead">v2 大砍 v1 候選清單——只留下劇本用得到、且解釋性強的。</p>
+
+    <table class="data">
+      <thead><tr><th>能力</th><th>v2 選擇</th><th>砍掉的候選</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>需求預測（商品級）</td>
+          <td><strong>Holt-Winters</strong>（statsmodels）</td>
+          <td>Prophet、LightGBM</td>
+          <td>Prophet stan 編譯肥；LightGBM 對 demo 而言精準提升不值得複雜度</td>
+        </tr>
+        <tr>
+          <td>需求預測（公司級）</td>
+          <td><strong>Holt-Winters</strong></td>
+          <td>—</td>
+          <td>同上、且資料聚合後雜訊小、HW 已足</td>
+        </tr>
+        <tr>
+          <td>客戶分群</td>
+          <td><strong>RFM 分位切割</strong>（純規則）</td>
+          <td>K-means、DBSCAN</td>
+          <td>RFM 555 比 cluster #3 好懂 10 倍；demo 講不出 K-means 的價值</td>
+        </tr>
+        <tr>
+          <td>流失預測</td>
+          <td><strong>Logistic Regression</strong>（sklearn）</td>
+          <td>Random Forest、XGBoost</td>
+          <td>係數能直接讀「哪個特徵推高流失機率」</td>
+        </tr>
+        <tr>
+          <td>AR 逾期風險</td>
+          <td><strong>Logistic Regression</strong></td>
+          <td>XGBoost</td>
+          <td>同上</td>
+        </tr>
+        <tr>
+          <td>庫存異常</td>
+          <td><strong>z-score</strong>（純統計）</td>
+          <td>Isolation Forest</td>
+          <td>z-score 講「比平均高 3σ」比 IF 講「異常分數 0.72」直觀</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>模型生命週期（簡化）</h3>
+    <ul class="tight">
+      <li><strong>訓練</strong>：app startup hook + 每日 cron（用 APScheduler 或外部 cron）。模型 pickle 到 <code class="endpoint">backend/app/ml/models/</code>。</li>
+      <li><strong>推論</strong>：endpoint 直接 load 並 cache。</li>
+      <li><strong>沒有 MLflow、沒有 feature store</strong>——demo 不需要。</li>
+      <li><strong>新 endpoint</strong>：
+        <ul class="tight">
+          <li><code class="endpoint">GET /forecasts/demand?product_id=&horizon=3</code></li>
+          <li><code class="endpoint">GET /forecasts/revenue?horizon=3</code></li>
+          <li><code class="endpoint">GET /analytics/customer-rfm</code></li>
+          <li><code class="endpoint">GET /analytics/churn-risk?top=20</code></li>
+          <li><code class="endpoint">POST /analytics/ar-risk</code>（body 含一張未確認的 SO 資訊）</li>
+          <li><code class="endpoint">GET /analytics/shrinkage-anomaly?lookback_months=6</code></li>
+          <li><code class="endpoint">GET /analytics/reorder-suggestions</code>（產出補貨清單，S3 直接吃）</li>
+        </ul>
+      </li>
+    </ul>
+
+    <div class="callout warn">
+      <span class="label">解釋性原則</span>
+      所有 ML endpoint 都要回傳<strong>說明欄位</strong>，不能只給數字。例如 churn-risk 回傳：
+      <pre class="code" style="margin-top: 8px;">{ "customer_id": 12, "risk": 0.78,
+  "<span class="k">reasons</span>": [
+    <span class="s">"已 45 天沒下單（平均 18 天）"</span>,
+    <span class="s">"金額同比下滑 62%"</span>,
+    <span class="s">"主購品項 LED-A100 我們近期漲價"</span>
+  ] }</pre>
+      這讓 agent 不只說「祥豐流失風險 78%」、而是「祥豐流失風險高，因為……」——這才是 demo 張力。
+    </div>
+  </div>
+</details>
+
+
+<span class="anchor" id="agent-arch"></span>
+<div class="section-title">F · Agent 整合</div>
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill l4">L4</span>
+    <span class="title">AI Agent 架構與 Tool Schema</span>
+    <span class="meta">Anthropic Claude tool use</span>
+  </summary>
+  <div class="body">
+    <h3>架構</h3>
+    <ul class="tight">
+      <li>新後端模組 <code class="endpoint">app/agent/</code>，內含 <code class="inline">tools.py</code>（工具註冊）、<code class="inline">prompts.py</code>（system prompts）、<code class="inline">runner.py</code>（multi-turn loop）。</li>
+      <li>新 endpoint <code class="endpoint">POST /agent/chat</code>：body 帶 messages、user_id、可選 mode（<code class="inline">chat</code> / <code class="inline">briefing</code> / <code class="inline">analyze</code>）。回傳 streaming 或 batch。</li>
+      <li>用 <strong>Anthropic SDK</strong>（Claude Sonnet 4.6 即可、無需 Opus）。<strong>啟用 prompt caching</strong> 把 system prompt + tool schema 快取。</li>
+      <li>權限：Agent 用呼叫者的 JWT 操作；寫入工具額外做 RBAC（建草稿要 admin/manager/warehouse；agent 不能直接 receive/confirm）。</li>
+    </ul>
+
+    <h3>Tool Schema 範本</h3>
+    <pre class="code">{
+  <span class="k">"name"</span>: <span class="s">"get_sales_trend"</span>,
+  <span class="k">"description"</span>: <span class="s">"取得銷售趨勢，可按月/類別/客戶/業務員分組，並可選同比比較。\n用於：回答『銷售變化』、『哪段時間衰退』、『誰賣得最多』等問題。"</span>,
+  <span class="k">"input_schema"</span>: {
+    <span class="k">"type"</span>: <span class="s">"object"</span>,
+    <span class="k">"properties"</span>: {
+      <span class="k">"start_date"</span>: { <span class="k">"type"</span>: <span class="s">"string"</span>, <span class="k">"format"</span>: <span class="s">"date"</span> },
+      <span class="k">"end_date"</span>: { <span class="k">"type"</span>: <span class="s">"string"</span>, <span class="k">"format"</span>: <span class="s">"date"</span> },
+      <span class="k">"group_by"</span>: { <span class="k">"enum"</span>: [<span class="s">"month"</span>, <span class="s">"category"</span>, <span class="s">"customer"</span>, <span class="s">"salesperson"</span>] },
+      <span class="k">"compare"</span>: { <span class="k">"enum"</span>: [<span class="s">"none"</span>, <span class="s">"mom"</span>, <span class="s">"yoy"</span>] }
+    },
+    <span class="k">"required"</span>: [<span class="s">"start_date"</span>, <span class="s">"end_date"</span>]
+  }
+}</pre>
+
+    <h3>系統提示要點</h3>
+    <ol class="tight">
+      <li><strong>角色定義</strong>：「你是 my_erp 內建分析助理，協助使用者解讀進銷存與會計資料、提出洞察、必要時建立草稿單據。」</li>
+      <li><strong>邊界</strong>：列出可讀/可寫範圍。寫入動作只能建 draft，禁止直接 receive/confirm/void。</li>
+      <li><strong>回答風格</strong>：先給結論、再給數字、再給建議。避免讀稿式逐條工具呼叫；回應要像同事不像 SQL。</li>
+      <li><strong>不確定時要明說</strong>：「資料只有 3 個月，預測信心較低」比假裝確定好。</li>
+      <li><strong>使用者語言</strong>：預設繁中。</li>
+    </ol>
+
+    <h3>五個 Agent 介面入口</h3>
+    <table class="data">
+      <thead><tr><th>入口</th><th>呼叫方式</th><th>對應劇本</th></tr></thead>
+      <tbody>
+        <tr><td>對話視窗（floating chat）</td><td>從任何頁面開啟、保留 context</td><td>S2, S5</td></tr>
+        <tr><td>每日簡報（HomePage 區塊）</td><td>頁面載入即顯示 cached briefing；可刷新</td><td>S1</td></tr>
+        <tr><td>智慧補貨頁面</td><td>專屬頁 <code class="endpoint">/agent/restock</code>，agent 主動跑 reorder-suggestions</td><td>S3</td></tr>
+        <tr><td>現金流規劃頁</td><td>專屬頁 <code class="endpoint">/agent/cashflow</code></td><td>S4</td></tr>
+        <tr><td>頁面內 inline ask（每個報表頁）</td><td>「問 AI」按鈕，帶當前 filter context</td><td>跨劇本</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout danger">
+      <span class="label">寫入安全</span>
+      Agent 建立 draft 後一律回傳「請使用者確認」的回應 + 提供連結到單據頁；<strong>不要讓 agent 在 chat 內直接送出</strong>。這是 demo 信任的關鍵。
+    </div>
+  </div>
+</details>
+
+
+<span class="anchor" id="roadmap"></span>
+<div class="section-title">G · 落地路線</div>
+
+<details class="chapter" open>
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill" style="background: var(--accent-soft); color: var(--accent);">路線</span>
+    <span class="title">落地路線 v2（5 個 Stage）</span>
+  </summary>
+  <div class="body">
+    <p class="lead">每個 Stage 結束都能獨立 demo。順序設計成「每個 Stage 解鎖 1-2 個劇本」。</p>
+
+    <div class="stages">
+      <div class="stage">
+        <div class="s-num">STAGE 0</div>
+        <div class="s-title">資料故事</div>
+        <div class="s-meta">~ 1 session</div>
+        <div class="s-body"><code class="endpoint">seed_demo_data.py</code> 跑出 18 個月 + 角色化資料。<strong>解鎖</strong>：現有報表立即有戲。</div>
+      </div>
+      <div class="stage">
+        <div class="s-num">STAGE 1</div>
+        <div class="s-title">L1 補完 + L2 毛利</div>
+        <div class="s-meta">~ 1-2 sessions</div>
+        <div class="s-body">補必做的描述性 endpoint + <code class="endpoint">sales_order_items.unit_cost</code> + 毛利時序歸因。<strong>解鎖</strong>：S5（不含預測部分）。</div>
+      </div>
+      <div class="stage">
+        <div class="s-num">STAGE 2</div>
+        <div class="s-title">預測 + RFM</div>
+        <div class="s-meta">~ 2 sessions</div>
+        <div class="s-body">Holt-Winters（公司+商品）、RFM、流失、補貨建議。<strong>解鎖</strong>：S2 客戶名單、S3 補貨清單。</div>
+      </div>
+      <div class="stage">
+        <div class="s-num">STAGE 3</div>
+        <div class="s-title">Agent MVP</div>
+        <div class="s-meta">~ 2 sessions</div>
+        <div class="s-body">Tool 註冊、<code class="endpoint">/agent/chat</code>、floating chat UI、寫入 draft 工具。<strong>解鎖</strong>：S2、S5 完整對話。</div>
+      </div>
+      <div class="stage">
+        <div class="s-num">STAGE 4</div>
+        <div class="s-title">主動式 + 專屬頁</div>
+        <div class="s-meta">~ 1-2 sessions</div>
+        <div class="s-body">Daily briefing、/agent/restock、/agent/cashflow、inline ask。<strong>解鎖</strong>：S1、S3、S4 完整體驗。</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="label">關鍵節點</span>
+      <strong>Stage 0 是 demo 效果的乘數</strong>——沒做好資料故事，後面所有努力都會講不出張力。建議第一個 session 全力做 Stage 0。
+    </div>
+  </div>
+</details>
+
+
+<span class="anchor" id="kpi"></span>
+<div class="section-title">H · Demo KPI</div>
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill" style="background: var(--head-bg); color: var(--text-soft);">KPI</span>
+    <span class="title">Demo 成功 KPI</span>
+  </summary>
+  <div class="body">
+    <p class="lead">怎麼判斷 demo 成功了？這些是「能在 demo 現場驗證」的具體指標。</p>
+
+    <table class="data">
+      <thead><tr><th>KPI</th><th>目標</th><th>驗證方式</th></tr></thead>
+      <tbody>
+        <tr><td>劇本完成率</td><td>5/5 劇本都跑得完、不出 hallucination</td><td>每個劇本錄一次完整 demo recording</td></tr>
+        <tr><td>診斷型對話深度</td><td>S5 至少 3 次 tool call 串成因果鏈</td><td>看 trace</td></tr>
+        <tr><td>解釋性</td><td>所有 ML 預測都帶「為什麼」說明</td><td>API response 必有 <code class="inline">reasons</code> 欄</td></tr>
+        <tr><td>邊界誠實</td><td>資料不足時 agent 主動說「信心低」</td><td>對 2025 年以前的資料問預測、觀察回應</td></tr>
+        <tr><td>寫入安全</td><td>所有寫入動作 100% 是 draft、且有確認步驟</td><td>檢視 tool registry 的 write tools</td></tr>
+        <tr><td>回應時間</td><td>chat 首字 &lt; 3 秒、完整回應 &lt; 15 秒</td><td>streaming + prompt caching</td></tr>
+        <tr><td>觀眾「啊哈」次數</td><td>每次 demo ≥ 2 次驚訝反應</td><td>實地測試</td></tr>
+      </tbody>
+    </table>
+  </div>
+</details>
+
+
+<span class="anchor" id="diff-v1"></span>
+<div class="section-title">I · 與 v1 對照</div>
+
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="layer-pill" style="background: var(--head-bg); color: var(--text-soft);">差異</span>
+    <span class="title">v1 → v2 變動明細</span>
+  </summary>
+  <div class="body">
+    <table class="data diff-table">
+      <thead><tr><th>項目</th><th>v1</th><th>v2</th></tr></thead>
+      <tbody>
+        <tr><td>主軸</td><td>能力分層目錄</td><td class="change">Demo 劇本驅動</td></tr>
+        <tr><td>需求預測模型</td><td>4 候選（Naive / HW / Prophet / LightGBM）</td><td class="change">只選 Holt-Winters</td></tr>
+        <tr><td>客戶分群</td><td>RFM + K-means 含糊帶過</td><td class="change">只用 RFM（純規則、可解釋）</td></tr>
+        <tr><td>AR 風險預測</td><td>Logistic OR XGBoost</td><td class="change">只選 Logistic Regression</td></tr>
+        <tr><td>庫存異常</td><td>Isolation Forest 或 z-score</td><td class="change">只用 z-score</td></tr>
+        <tr><td>Prophet</td><td>列為選項</td><td class="remove">移除</td></tr>
+        <tr><td>LightGBM / XGBoost</td><td>列為選項</td><td class="remove">移除</td></tr>
+        <tr><td>Seed data</td><td>「要豐富」一句帶過</td><td class="add">完整 Seed Blueprint + 角色化編劇</td></tr>
+        <tr><td>Tool schema</td><td>提到但無範本</td><td class="add">給 JSON 範本</td></tr>
+        <tr><td>Agent 入口</td><td>未明指</td><td class="add">5 個具體入口（chat / briefing / restock / cashflow / inline）</td></tr>
+        <tr><td>解釋性要求</td><td>未強制</td><td class="add">所有 ML endpoint 強制回傳 <code class="inline">reasons</code></td></tr>
+        <tr><td>Demo KPI</td><td>無</td><td class="add">7 個可驗證指標</td></tr>
+        <tr><td>Stage 數</td><td>4</td><td class="change">5（拆出 Stage 0 資料故事）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>從 v1 留下來、不改的部分</h3>
+    <ul class="tight">
+      <li>四層概念（描述 → 毛利 → 預測 → Agent）的整體骨架。</li>
+      <li>毛利分析用快照成本（<code class="endpoint">sales_order_items.unit_cost</code>）、非 FIFO。</li>
+      <li>L1 已有的 endpoint（月報、AR/AP 帳齡、業務員報表）不重做。</li>
+      <li>寫入動作必須 human-in-the-loop 的安全原則。</li>
+    </ul>
+  </div>
+</details>
+
+
+<footer>
+  my_erp 分析與 ML 規劃 v2 · 劇本驅動 · 最後更新：2026-05-19
+</footer>
+
+</div>
+</body>
+</html>

@@ -224,6 +224,8 @@ def confirm(db: Session, order: SalesOrder) -> SalesOrder:
     for item in order.items:
         product = products[item.product_id]
         product.stock_quantity = (product.stock_quantity or 0) - item.quantity
+        # Snapshot cost at confirm time — frozen for the lifetime of this line.
+        item.unit_cost = product.cost_price
     order.status = SalesOrderStatus.confirmed
     order.confirmed_at = datetime.now(timezone.utc)
     # Auto-create the receivable in the same transaction.

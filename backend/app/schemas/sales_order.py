@@ -39,6 +39,7 @@ class SalesOrderItemRead(BaseModel):
     product: ProductBrief
     quantity: int
     unit_price: Decimal
+    unit_cost: Decimal | None
     subtotal: Decimal
 
 

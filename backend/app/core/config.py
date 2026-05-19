@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
 
-    DATABASE_URL: str = "sqlite:///./sales_system.db"
+    DATABASE_URL: str = "sqlite:///./my_erp.db"
 
     JWT_SECRET_KEY: str = "change-me"
     JWT_ALGORITHM: str = "HS256"

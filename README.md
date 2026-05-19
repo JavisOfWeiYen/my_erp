@@ -2,6 +2,8 @@
 
 一個從零開始打造的小型 **進銷存（Inventory / Sales）+ 應收應付（AR/AP）** ERP 系統，採前後端分離架構，主要使用者介面為**繁體中文**（內建英文切換）。
 
+> **本專案的真正目的：作為 AI agent demo 的模擬資料庫。** 業務邏輯設計得足夠真實（兩段式單據、append-only 紀錄、多角色 RBAC、稅金拆解、AR/AP 帳齡 …），讓 AI agent 能在裡面查資料、做分析、執行跨表推理；但不追求成為「真正商家可上線」的成熟產品。實務上才會在意的細節（PDF 列印 / 印章 / 多倉庫 / 多幣別等）不在近期 backlog。
+
 > 本檔案是給開發者／使用者讀的專案總覽與開發歷程。給 AI agent 看的詳細慣例請見 [`CLAUDE.md`](./CLAUDE.md)。
 
 ---
@@ -201,20 +203,27 @@ my_erp/
 
 ## 9. Backlog
 
+> 本專案是 AI agent demo 的模擬資料庫（見頁首方塊），因此優先項目偏向「給 AI 更多可查可推理的東西」，而非「真實商家會在意的功能」。
+
 依優先序，動工前需先和使用者對齊：
 
-1. **PDF 列印（進銷貨單）** — `weasyprint` 走 HTML/CSS。需先決定：公司抬頭來源（settings 或新表 `company_profile`）、是否含印章 / 簽收欄、先做進貨還是銷貨。
-2. **毛利分析** — 需選成本配對方法：
+1. **毛利分析** — 需選成本配對方法：
    - **方案 A（建議）**：銷貨 confirm 當下，快照 `product.cost_price` 寫入 `sales_order_items.unit_cost`。簡單穩定。
    - **方案 B（FIFO）**：批次級庫存表 `stock_lots`，大改動。
 
 低優先（之後再評估）：
 
+- 豐富 seed data（多月份、多客戶、含逾期 AR / 庫存警示 / 作廢付款等情境，讓 AI agent 有東西可查）
+- 更多分析型 endpoint（top customers、slow movers、AR 趨勢等）
 - 前端 bundle size（目前 ~740 kB，可拆 chunk 或 lazy-load）
 - CI / CD（GitHub Actions：pytest + alembic upgrade + lint + build）
 - 日報 / 年報（月報邏輯改 `_period_bounds` 即可重用）
 - 進貨退回 / 銷貨退回
 - 多倉庫、折扣、多幣別（依需求再評估）
+
+**永久延後（不在 AI agent demo 範圍）：**
+
+- PDF 列印（進銷貨單、印章、簽收欄）— 只有真實營運才在意，對 AI demo 無價值。
 
 ---
 
@@ -225,6 +234,74 @@ my_erp/
 - `uvicorn --reload` 在 Windows mount 上偶爾因 watchfiles 卡住 2-3 秒，正常。
 - 使用者自己跑的 uvicorn / vite dev server 不要 kill，請使用者自行重啟。
 
-## 11. 授權
+## 11. 部署 checklist（未來才需要）
+
+> Dev 階段 localhost HTTP 沒有實質風險（封包不離開 loopback），所以 dev 不用上 HTTPS。
+> 但**部署到雲端必須 HTTPS**——TLS 在 reverse proxy 那層終止，應用本身不需要改 code。
+
+部署當天才需要照這份清單一一處理：
+
+### 11.1 前端
+
+- [ ] `cd frontend && npm run build` 產出 `dist/`，由 reverse proxy 或 CDN serve，**不要**上 Vite dev server。
+- [ ] 建 `frontend/.env.production`，設 `VITE_API_BASE_URL=https://your-domain/api/v1`（或同網域走 path，例如 `/api/v1`）。
+- [ ] SPA fallback：所有非 API 路由都 `try_files {path} /index.html`，否則 React Router 直接刷新會 404。
+
+### 11.2 後端
+
+- [ ] 啟動指令拿掉 `--reload`：`uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers N`（N 視 CPU 數），或用 gunicorn + uvicorn worker。
+- [ ] **產生強隨機 `SECRET_KEY`**：`openssl rand -hex 32`，寫進 production `.env`，**絕對不能進版控**。
+- [ ] `BACKEND_CORS_ORIGINS` 加上 production domain（去掉 localhost）。
+- [ ] `ACCESS_TOKEN_EXPIRE_MINUTES` 視情境調整（demo 可放寬，正式環境應收緊）。
+- [ ] 修改預設 admin 密碼，或讓 seed 從 `INITIAL_ADMIN_*` 環境變數讀（已實作）。
+
+### 11.3 資料庫
+
+- [ ] **demo 維持 SQLite 也可以**——`DATABASE_URL=sqlite:///./data/sales_system.db`，volume 掛載 `data/` 確保持久化。
+- [ ] **想升級 PostgreSQL**：`DATABASE_URL=postgresql+psycopg2://user:pass@host:5432/dbname`，不用改任何程式碼（架構已 DB-agnostic）。記得 `alembic upgrade head`。
+
+### 11.4 TLS / Reverse proxy（推薦 Caddy）
+
+Caddy 自動處理 Let's Encrypt 簽憑證 + 自動續憑，最省事：
+
+```caddyfile
+demo.example.com {
+    handle /api/* {
+        reverse_proxy localhost:8000
+    }
+    handle {
+        root * /var/www/my_erp/frontend/dist
+        try_files {path} /index.html
+        file_server
+    }
+    encode gzip
+}
+```
+
+或用 nginx + certbot（手動但成熟）。
+
+### 11.5 容器化（可選但推薦）
+
+- [ ] 後端 `Dockerfile`（Python 3.12-slim + requirements + 啟動 uvicorn）
+- [ ] 前端用 multi-stage：`node:20` build → `caddy:alpine` 跑 dist（或前端 dist 直接交給 host 的 Caddy）
+- [ ] `docker-compose.yml` 串起後端 + Caddy + （可選）PostgreSQL；volume 掛 SQLite db / Caddy data 目錄
+
+### 11.6 主機選擇方向
+
+| 方案                          | 適合                                                          |
+| ----------------------------- | ------------------------------------------------------------- |
+| VPS（DigitalOcean / Linode）  | 完全控制，最便宜 $4-6/月，自己裝 Docker + Caddy               |
+| Fly.io / Render               | 半 PaaS，git push 部署，TLS 自動，但 SQLite 要靠 volume       |
+| Cloudflare Tunnel + 自家機器  | 不用買主機、不用開 port，但要保持本機開機                     |
+
+### 11.7 上線後監看
+
+- [ ] 後端 log 拉 stdout（uvicorn 預設）→ docker logs / journalctl
+- [ ] `/api/v1/health/db` 接 uptime 監控（UptimeRobot 免費版即可）
+- [ ] 定期備份 SQLite（rclone / restic 推 S3）；若用 Postgres 則設 `pg_dump` cron
+
+---
+
+## 12. 授權
 
 內部專案，未對外發佈。

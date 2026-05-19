@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     accounts_payable,
     accounts_receivable,
+    analytics,
     ap_payments,
     ar_payments,
     auth,
@@ -41,3 +42,4 @@ api_router.include_router(ap_payments.router)
 api_router.include_router(menu.router)
 api_router.include_router(menu.admin_router)
 api_router.include_router(dashboard.router)
+api_router.include_router(analytics.router)

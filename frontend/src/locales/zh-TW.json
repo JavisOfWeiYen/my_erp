@@ -272,8 +272,10 @@
     "totalSales": "銷貨合計",
     "adjustment": "盤點異動",
     "exportExcel": "匯出 Excel",
+    "exportNotAvailable": "此分頁尚未提供 Excel 匯出",
     "tabInventory": "庫存月報",
     "tabSalesperson": "業務報表",
+    "tabMargin": "毛利分析",
     "salesperson": {
       "name": "業務員",
       "role": "角色",
@@ -283,6 +285,28 @@
       "share": "佔比",
       "totalOrders": "訂單合計",
       "totalAmountSum": "總額合計"
+    },
+    "margin": {
+      "scopeHint": "顯示最近 12 個月趨勢與全期商品/客戶排行",
+      "trendTitle": "12 個月毛利趨勢",
+      "byProductTitle": "商品毛利排行（Top 10）",
+      "byCustomerTitle": "客戶毛利排行（Top 10）",
+      "yearMonth": "月份",
+      "qty": "數量",
+      "revenue": "營收",
+      "cost": "成本",
+      "grossProfit": "毛利",
+      "marginRate": "毛利率",
+      "avgUnitPrice": "均價",
+      "avgUnitCost": "均本",
+      "product": "商品",
+      "customer": "客戶",
+      "orderCount": "訂單數",
+      "overallTitle": "整體",
+      "overallMargin": "整體毛利率",
+      "totalRevenue": "營收合計",
+      "totalCost": "成本合計",
+      "totalGrossProfit": "毛利合計"
     }
   },
   "accountsReceivable": {
