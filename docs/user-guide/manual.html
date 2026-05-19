@@ -254,6 +254,7 @@
     <li><a href="#ch-customer">客戶</a></li>
     <li><a href="#ch-sale">銷貨單</a></li>
     <li><a href="#ch-inventory">查庫存</a></li>
+    <li><a href="#ch-adjust">庫存調整（盤點）</a></li>
     <li><a href="#ch-report">月報表</a></li>
     <li><a href="#ch-users">使用者帳號（系統管理員）</a></li>
     <li><a href="#ch-faq">遇到問題怎麼辦</a></li>
@@ -675,12 +676,67 @@
 </details>
 
 
-<!-- ============================== 12. 報表 ============================== -->
+<!-- ============================== 12. 庫存調整 ============================== -->
+<span class="anchor" id="ch-adjust"></span>
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="num">12</span><span class="title">庫存調整（盤點）</span>
+    <span class="roles"><span class="role admin">admin</span><span class="role manager">manager</span><span class="role warehouse">warehouse</span></span>
+  </summary>
+  <div class="body">
+    <p class="lead">實際庫存跟系統數字對不上的時候，用這個功能補正。例如盤點發現多／少了、商品報廢、其他原因。</p>
+
+    <h3>新增一筆調整</h3>
+    <ol class="steps">
+      <li><strong>左側選單點「庫存調整」</strong></li>
+      <li><strong>右上角點 <span class="btn-look">+ 新增</span></strong></li>
+      <li><strong>選商品</strong>
+        <div class="sub">下拉清單或搜尋商品編號／名稱。選好後系統會顯示「目前庫存」。</div>
+      </li>
+      <li><strong>輸入變動量</strong>
+        <div class="sub">正數＝庫存增加（盤盈），負數＝庫存減少（盤虧／報廢）。例如盤點實際多 3 個就填 <kbd>3</kbd>；少了 5 個就填 <kbd>-5</kbd>。</div>
+      </li>
+      <li><strong>選原因</strong>
+        <div class="sub">四選一：盤盈、盤虧、報廢、其他。系統只把這當「標籤」，真正影響庫存的是你填的變動量數字。</div>
+      </li>
+      <li><strong>備註（可選）</strong>
+        <div class="sub">建議寫清楚為什麼要調，方便日後查證。例如「2026/05/01 盤點：A 倉架上實有 8 個」。</div>
+      </li>
+      <li><strong>確認預覽，按 <span class="btn-look">儲存</span></strong>
+        <div class="sub">儲存前畫面會顯示「目前庫存 → 調整後庫存」。如果調整後會變負數，會用紅字擋下不讓你存。</div>
+      </li>
+    </ol>
+
+    <div class="callout danger">
+      <span class="label">不要這樣做</span>
+      <strong>調整單一旦存檔，不能修改、也不能刪除。</strong>這是給審計查證用的紀錄，每一筆都會留下「誰、什麼時候、為什麼調」。發現填錯只能再開一筆相反方向的調整單來抵消，並在備註寫明原因。
+    </div>
+
+    <h3>查詢過去的調整紀錄</h3>
+    <ol class="steps">
+      <li><strong>進「庫存調整」頁就是清單</strong>
+        <div class="sub">每一列：調整單號（<kbd>ADJ-YYYYMMDD-####</kbd>）、商品、調整前／變動／調整後、原因、操作人、時間。</div>
+      </li>
+      <li><strong>用上方過濾器篩選</strong>
+        <div class="sub">可以按商品、原因、操作人過濾，或用搜尋框找單號。</div>
+      </li>
+    </ol>
+
+    <div class="callout tip">
+      <span class="label">會影響月報嗎？</span>
+      會。在「月報表」每個商品那一列，<strong>盤點異動</strong>欄會顯示當月所有調整的有號淨變動（例如盤盈 +3、盤虧 −5，淨值 −2）；期末庫存的計算也會把它算進去。
+    </div>
+  </div>
+</details>
+
+
+<!-- ============================== 13. 報表 ============================== -->
 <span class="anchor" id="ch-report"></span>
 <details class="chapter">
   <summary>
     <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
-    <span class="num">12</span><span class="title">月報表</span>
+    <span class="num">13</span><span class="title">月報表</span>
     <span class="roles"><span class="role admin">admin</span><span class="role manager">manager</span><span class="role sales">sales</span><span class="role warehouse">warehouse</span></span>
   </summary>
   <div class="body">
@@ -690,7 +746,7 @@
       <li><strong>左側選單點「報表」</strong></li>
       <li><strong>選年份、月份</strong></li>
       <li><strong>看內容</strong>
-        <div class="sub">每個商品一列：期初庫存、本月進貨、本月銷貨、期末庫存、進貨金額、銷貨金額。最上方有「進貨合計」「銷貨合計」總數。</div>
+        <div class="sub">每個商品一列：期初庫存、本月進貨、本月銷貨、<strong>盤點異動</strong>、期末庫存、進貨金額、銷貨金額。最上方有「進貨合計」「銷貨合計」總數。</div>
       </li>
       <li><strong>匯出 Excel（可選）</strong>
         <div class="sub">點 <span class="btn-look">匯出 Excel</span>，瀏覽器會下載一個 .xlsx 檔，雙擊就能用 Excel 打開。</div>
@@ -699,7 +755,7 @@
 
     <div class="callout tip">
       <span class="label">怎麼算的</span>
-      只有「已入庫」的進貨和「已出貨」的銷貨會被算進去。<span class="badge-inline draft">草稿</span>和<span class="badge-inline cancelled">已取消</span>不會算。
+      只有「已入庫」的進貨和「已出貨」的銷貨會被算進去。<span class="badge-inline draft">草稿</span>和<span class="badge-inline cancelled">已取消</span>不會算。盤點異動（見<a href="#ch-adjust">第 12 章</a>）也會列入期末庫存的計算。
     </div>
   </div>
 </details>
@@ -710,7 +766,7 @@
 <details class="chapter">
   <summary>
     <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
-    <span class="num">13</span><span class="title">使用者帳號（系統管理員專用）</span>
+    <span class="num">14</span><span class="title">使用者帳號（系統管理員專用）</span>
     <span class="roles"><span class="role admin">admin</span></span>
   </summary>
   <div class="body">
@@ -752,7 +808,7 @@
 <details class="chapter">
   <summary>
     <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
-    <span class="num">14</span><span class="title">遇到問題怎麼辦</span>
+    <span class="num">15</span><span class="title">遇到問題怎麼辦</span>
   </summary>
   <div class="body">
 
