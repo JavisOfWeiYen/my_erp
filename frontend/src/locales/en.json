@@ -18,6 +18,7 @@
     "accountsPayable": "Payables",
     "aging": "Aging",
     "users": "Users",
+    "employees": "Employees",
     "menuManagement": "Menu Management",
     "groupSales": "Sales",
     "groupInventory": "Inventory",
@@ -464,6 +465,65 @@
     "cannotDeleteSelf": "You can't delete your own account",
     "errors": {
       "roleRequired": "Please select a role"
+    }
+  },
+  "employees": {
+    "searchPlaceholder": "Search by number, title, or name",
+    "includeTerminated": "Show terminated",
+    "createTitle": "Create employee",
+    "editTitle": "Edit employee",
+    "noLinkedUser": "No linked login account",
+    "deleteConfirm": "Delete employee \"{{number}}\"? Salary records will be deleted too; this cannot be undone.",
+    "salaryHistory": "Salary history",
+    "salaryHistoryTitle": "Salary history — {{number}} {{name}}",
+    "currentBaseSalary": "Current base salary",
+    "initialSalaryHint": "Starting salary on hire; written as the first salary record.",
+    "fields": {
+      "employeeNumber": "Number",
+      "linkedUser": "Login account",
+      "department": "Department",
+      "title": "Title",
+      "hireDate": "Hire date",
+      "terminationDate": "Termination date",
+      "employmentType": "Employment type",
+      "baseSalary": "Base salary",
+      "initialSalary": "Initial salary",
+      "status": "Status",
+      "notes": "Notes"
+    },
+    "departments": {
+      "sales": "Sales",
+      "warehouse": "Warehouse",
+      "accounting": "Accounting",
+      "management": "Management",
+      "it": "IT"
+    },
+    "employmentTypes": {
+      "full_time": "Full-time",
+      "part_time": "Part-time",
+      "contractor": "Contractor"
+    },
+    "status": {
+      "active": "Active",
+      "terminated": "Terminated"
+    },
+    "salary": {
+      "effectiveDate": "Effective date",
+      "amount": "Amount",
+      "reason": "Reason",
+      "notes": "Notes",
+      "add": "Add adjustment"
+    },
+    "salaryReasons": {
+      "hire": "Hire",
+      "promotion": "Promotion",
+      "adjustment": "Adjustment",
+      "correction": "Correction"
+    },
+    "errors": {
+      "titleRequired": "Title is required",
+      "initialSalaryRequired": "Initial salary must be ≥ 0",
+      "amountRequired": "Amount must be ≥ 0"
     }
   },
   "errors": {

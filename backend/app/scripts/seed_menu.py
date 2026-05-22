@@ -68,6 +68,7 @@ DEFAULT_TREE = [
         "required_roles": "admin",
         "children": [
             ("nav.users", "People", "/users", "admin"),
+            ("nav.employees", "Badge", "/employees", "admin"),
             ("nav.menuManagement", "AccountTree", "/menu-management", "admin"),
         ],
     },

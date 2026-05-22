@@ -18,6 +18,7 @@
     "accountsPayable": "應付帳款",
     "aging": "帳齡分析",
     "users": "使用者管理",
+    "employees": "員工管理",
     "menuManagement": "選單管理",
     "groupSales": "業務系統",
     "groupInventory": "庫存系統",
@@ -464,6 +465,65 @@
     "cannotDeleteSelf": "無法刪除自己的帳號",
     "errors": {
       "roleRequired": "請選擇角色"
+    }
+  },
+  "employees": {
+    "searchPlaceholder": "輸入員工編號、職稱或姓名",
+    "includeTerminated": "顯示已離職",
+    "createTitle": "新增員工",
+    "editTitle": "編輯員工",
+    "noLinkedUser": "未連結登入帳號",
+    "deleteConfirm": "確定要刪除員工「{{number}}」嗎？薪資紀錄會一併刪除，操作無法復原。",
+    "salaryHistory": "薪資歷史",
+    "salaryHistoryTitle": "薪資歷史 — {{number}} {{name}}",
+    "currentBaseSalary": "目前月薪",
+    "initialSalaryHint": "入職首薪，會自動寫入薪資紀錄第一筆",
+    "fields": {
+      "employeeNumber": "員工編號",
+      "linkedUser": "登入帳號",
+      "department": "部門",
+      "title": "職稱",
+      "hireDate": "入職日",
+      "terminationDate": "離職日",
+      "employmentType": "聘僱類型",
+      "baseSalary": "目前月薪",
+      "initialSalary": "入職月薪",
+      "status": "狀態",
+      "notes": "備註"
+    },
+    "departments": {
+      "sales": "業務",
+      "warehouse": "倉管",
+      "accounting": "會計",
+      "management": "管理",
+      "it": "資訊"
+    },
+    "employmentTypes": {
+      "full_time": "全職",
+      "part_time": "兼職",
+      "contractor": "約聘"
+    },
+    "status": {
+      "active": "在職",
+      "terminated": "已離職"
+    },
+    "salary": {
+      "effectiveDate": "生效日",
+      "amount": "金額",
+      "reason": "原因",
+      "notes": "備註",
+      "add": "新增調薪"
+    },
+    "salaryReasons": {
+      "hire": "入職",
+      "promotion": "升職",
+      "adjustment": "調薪",
+      "correction": "更正"
+    },
+    "errors": {
+      "titleRequired": "請輸入職稱",
+      "initialSalaryRequired": "請輸入入職月薪（必須 ≥ 0）",
+      "amountRequired": "請輸入薪資金額（必須 ≥ 0）"
     }
   },
   "errors": {

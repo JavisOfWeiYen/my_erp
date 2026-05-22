@@ -6,6 +6,13 @@ from app.models.ar_payment import ARPayment, PaymentMethod
 from app.models.category import Category
 from app.models.menu_item import MenuItem
 from app.models.customer import Customer
+from app.models.employee import (
+    Department,
+    Employee,
+    EmploymentType,
+    SalaryChangeReason,
+    SalaryRecord,
+)
 from app.models.product import Product
 from app.models.purchase_order import (
     PurchaseOrder,
@@ -33,6 +40,9 @@ __all__ = [
     "Base",
     "Category",
     "Customer",
+    "Department",
+    "Employee",
+    "EmploymentType",
     "MenuItem",
     "PayableStatus",
     "PaymentMethod",
@@ -42,6 +52,8 @@ __all__ = [
     "PurchaseOrderStatus",
     "ReceivableStatus",
     "Role",
+    "SalaryChangeReason",
+    "SalaryRecord",
     "SalesOrder",
     "SalesOrderItem",
     "SalesOrderStatus",

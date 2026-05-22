@@ -11,6 +11,7 @@ import LoginPage from '@/pages/LoginPage'
 import MenuManagementPage from '@/pages/MenuManagementPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import CustomersPage from '@/pages/CustomersPage'
+import EmployeesPage from '@/pages/EmployeesPage'
 import InventoryPage from '@/pages/InventoryPage'
 import ProductsPage from '@/pages/ProductsPage'
 import PurchasesPage from '@/pages/PurchasesPage'
@@ -45,6 +46,7 @@ export default function App() {
         <Route element={<ProtectedRoute roles={['admin']} />}>
           <Route element={<Layout />}>
             <Route path="users" element={<UsersPage />} />
+            <Route path="employees" element={<EmployeesPage />} />
             <Route path="menu-management" element={<MenuManagementPage />} />
           </Route>
         </Route>
