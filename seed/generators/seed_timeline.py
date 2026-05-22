@@ -428,7 +428,24 @@ def execute_month_sos(
 
 
 def run_timeline(client: SeedAPIClient, state: SeedState) -> None:
-    """Plan and execute the 18-month timeline against the backend."""
+    """Plan and execute the 18-month timeline against the backend.
+
+    Refuses to run if PO/SO rows already exist — re-running on top of an
+    existing dataset would double everything. Use ``--reset`` to wipe first.
+    """
+    existing_pos = client.get(
+        "/purchase-orders", params={"limit": 1}
+    ).json()
+    existing_sos = client.get(
+        "/sales-orders", params={"limit": 1}
+    ).json()
+    if existing_pos or existing_sos:
+        raise RuntimeError(
+            "[timeline] refuse to run: PO/SO rows already exist in seed.db. "
+            "Re-run with --reset to wipe transactional data first, or use "
+            "--stop-after catalog to skip the timeline step."
+        )
+
     rng = random.Random(tu.RNG_SEED)
 
     print("[timeline] planning all SOs in memory ...")

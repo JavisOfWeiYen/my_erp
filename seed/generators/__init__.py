@@ -9,7 +9,9 @@ from __future__ import annotations
 from .api_client import SeedAPIClient, SeedAPIError
 from .seed_catalog import run_catalog
 from .seed_events import run_events
+from .seed_finalize import run_finalize
 from .seed_people import run_people
+from .seed_reset import run_reset
 from .seed_setup import SeedState, run_setup
 from .seed_timeline import run_timeline
 
@@ -22,4 +24,6 @@ __all__ = [
     "run_people",
     "run_timeline",
     "run_events",
+    "run_finalize",
+    "run_reset",
 ]

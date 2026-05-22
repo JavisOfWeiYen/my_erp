@@ -1,10 +1,8 @@
 """my_erp seed CLI.
 
 Generates an 18-month story-driven dataset (2024-12 ~ 2026-05) against a
-running backend instance. See seed/PLAN.html for the full story.
-
-Current state: Step 3 lands the "static" generators (setup + people +
-catalog). Steps 4-5 (timeline + scripted events) still print as stubs.
+running backend instance. See seed/PLAN.html for the story design and
+seed/STORYLINES.md for what every scripted scenario produces.
 """
 from __future__ import annotations
 
@@ -27,23 +25,24 @@ from seed.generators import (  # noqa: E402
     SeedState,
     run_catalog,
     run_events,
+    run_finalize,
     run_people,
+    run_reset,
     run_setup,
     run_timeline,
 )
 
 
-# Each tuple: (step_name, description, runs_at_step_3?). Step 4-5 keep
-# their slots so --stop-after / --help stays accurate.
 STEPS: list[tuple[str, str]] = [
     ("setup", "Verify backend reachable + log in as admin"),
     ("people", "Create 50 staff (admin 2 + manager 6 + sales 28 + warehouse 14)"),
     ("catalog", "Create 6 suppliers + 5 categories + 37 products + 30 customers"),
     ("timeline", "18-month PO/receive/SO/confirm loop + raw-SQL timestamp backdate"),
-    ("events", "Scripted events: price hikes, churn, stockouts, adjustments, payments, voids"),
+    ("events", "Scripted events: stock adjustments / AR/AP payments / voids"),
+    ("finalize", "Rewrite *_number prefixes from backdated dates"),
 ]
 
-IMPLEMENTED_STEPS = {"setup", "people", "catalog", "timeline", "events"}
+IMPLEMENTED_STEPS = {"setup", "people", "catalog", "timeline", "events", "finalize"}
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -59,7 +58,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--reset",
         action="store_true",
-        help="Wipe existing seed-generated rows before running (not yet implemented).",
+        help="Wipe PO/SO/AR/AP/payments/adjustments and reset stock/cost_price "
+             "to baseline before running the timeline step.",
     )
     parser.add_argument(
         "--stop-after",
@@ -117,9 +117,6 @@ def print_plan(args: argparse.Namespace, cfg: dict[str, str]) -> None:
 
 
 def execute(args: argparse.Namespace, cfg: dict[str, str]) -> int:
-    if args.reset:
-        print("[seed] --reset is not implemented yet; aborting.", file=sys.stderr)
-        return 2
     if not cfg["admin_password"]:
         print(
             "[seed] SEED_ADMIN_PASSWORD is empty — set it in seed/.env.",
@@ -148,6 +145,11 @@ def execute(args: argparse.Namespace, cfg: dict[str, str]) -> int:
             print("[seed] stopped after 'catalog'.")
             return 0
 
+        # --reset wipes transactional data after the catalogue is in place,
+        # so the timeline below starts from a clean slate.
+        if args.reset:
+            run_reset(client)
+
         run_timeline(client, state)
         if stop_after == "timeline":
             print("[seed] stopped after 'timeline'.")
@@ -156,6 +158,11 @@ def execute(args: argparse.Namespace, cfg: dict[str, str]) -> int:
         run_events(client, state)
         if stop_after == "events":
             print("[seed] stopped after 'events'.")
+            return 0
+
+        run_finalize(client)
+        if stop_after == "finalize":
+            print("[seed] stopped after 'finalize'.")
             return 0
 
     return 0
@@ -170,7 +177,14 @@ def main(argv: list[str] | None = None) -> int:
         print("[dry-run] No backend or DB calls made. Exiting.")
         return 0
 
-    return execute(args, cfg)
+    try:
+        return execute(args, cfg)
+    except RuntimeError as exc:
+        # Generators raise RuntimeError for expected user-facing failures
+        # (e.g. timeline idempotency guard). Print the message, not the
+        # traceback.
+        print(str(exc), file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
