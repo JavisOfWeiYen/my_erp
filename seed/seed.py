@@ -26,6 +26,7 @@ from seed.generators import (  # noqa: E402
     SeedAPIClient,
     SeedState,
     run_catalog,
+    run_events,
     run_people,
     run_setup,
     run_timeline,
@@ -42,7 +43,7 @@ STEPS: list[tuple[str, str]] = [
     ("events", "Scripted events: price hikes, churn, stockouts, adjustments, payments, voids"),
 ]
 
-IMPLEMENTED_STEPS = {"setup", "people", "catalog", "timeline"}
+IMPLEMENTED_STEPS = {"setup", "people", "catalog", "timeline", "events"}
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -152,8 +153,10 @@ def execute(args: argparse.Namespace, cfg: dict[str, str]) -> int:
             print("[seed] stopped after 'timeline'.")
             return 0
 
-        if stop_after in (None, "events"):
-            print("[seed] 'events' step not implemented yet — done.")
+        run_events(client, state)
+        if stop_after == "events":
+            print("[seed] stopped after 'events'.")
+            return 0
 
     return 0
 

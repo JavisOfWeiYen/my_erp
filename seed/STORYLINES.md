@@ -8,8 +8,10 @@ it shows up in the data.
 
 - **Timeline window**: 2024-12-01 → 2026-05-31 (18 months)
 - **Data shape**: 97 POs / 1576 SOs confirmed / 9 SOs skipped (stockout) /
-  3712 SO line items / 1576 ARs / 97 APs / 50 employees / 30 customers /
-  6 suppliers / 37 SKUs / 5 categories
+  3712 SO line items / 1576 ARs (1549 paid + 27 still open) / 1551 AR
+  payments (2 voided) / 97 APs (all paid) / 97 AP payments / 6 stock
+  adjustments / 50 employees / 30 customers / 6 suppliers / 37 SKUs /
+  5 categories
 
 ---
 
@@ -220,20 +222,45 @@ it shows up in the data.
 
 ---
 
-## AR / AP storylines (Step 5 補完前的注意事項)
+## AR / AP storylines (Step 5 完成)
 
-⚠️ Step 5 還沒做。目前 seed.db 的 AR/AP 狀態：
+Step 5 已套用：1551 AR 付款 / 97 AP 付款 / 6 盤點 / 2 收款作廢。AR 付款時機依
+`seed_events.PAYMENT_PROFILE_BY_ROLE` 按客戶 role 抽樣（早付 / 準時 / 1-30 晚 / 30-100 晚 / 不付）。
 
-- 1576 筆 AR 全部 status='open'，paid_amount = 0（沒人付過錢）
-- 1194 筆 AR 落在 aging d90_plus bucket（因為都沒付）
-- **這不是真實 demo 應有狀態** — Step 5 會加 AR/AP 收款 + 作廢事件
+### 27. 大同雲端零逾期戶 ✅ 驗證通過
+- 109 筆 AR 全 paid，沒有任何遲付
+- `vip_stable` profile: pay_rate=1.00, lateness=(-10, -1) — 全部早付 1-10 天
+- **Demo question**: "誰是最完美的付款客戶？" → 大同
 
-Step 5 之後應該呈現的劇本（尚未實作）：
-- 大同雲端: 0 overdue（vip_stable, 從未逾期）
-- 泰昌: 15% overdue rate（量大但有時遲付）
-- 旭光: 85% overdue rate（頑固逾期戶）— d61_90 / d90_plus bucket 集中
-- 祥豐: 60% overdue rate + 2026-03 後爆量逾期
-- 2 筆 AR 作廢（誤入帳沖正、客戶退票）
+### 28. 旭光頑固逾期戶 ✅ 驗證通過
+- 40 筆 AR 中：4 準時 + 4 d1-30 + 9 d31-60 + 9 d61-90 + 3 d90+ + **11 完全沒付**
+- `overdue` profile: pay_rate=0.70（30% 不付）, late_split (15% 準時 + 85% 45-100 天)
+- **Demo question**: "哪個客戶最該停信用？" → 旭光（27% 從沒付過 + 大量壓爆 90 天）
+
+### 29. 祥豐流失型付款劇本 ✅ 驗證通過
+- 96 筆 AR 中 82 paid / 14 still open
+- 月度付款率走勢：
+  - 2024-12 ~ 2026-01: 大多 80-100%
+  - 2026-02: 60%（churn 基準）
+  - **2026-03: 0%**（XIANGFENG override 觸發 — 流失後也停付）
+  - 2026-04: 1 筆樣本 100%（剩太少看不出）
+- **Demo question**: "祥豐除了下單變少，付款狀況也變了嗎？" → 2026-03 後付款率歸零，更狠的流失證據
+
+### 30. AR 收款作廢 ✅ 驗證通過
+- 2 筆完整作廢：
+  - REC-20250927-0003: 諾奇商業通路 (BG_NUOQI) 2025-09 客戶退票
+  - REC-20260213-0001: 豪翔電腦 (BG_HAOXIANG) 2026-02 誤入帳沖正
+- **Demo question**: "今年有多少筆收款被作廢？" → 2 筆
+- 注意 backend 編號 generator 正確用 paid_at 寫日期 prefix（不像 AR.ar_number 用今天）
+
+### 31. AR aging d90+ 集中度 ✅ 驗證通過 (22 筆 / KPI ≥ 5)
+- 22 筆 AR 在 2026-05-22 still open 且 due_date 早於 2026-02-21
+- 主要來源：旭光 + 祥豐 + 各 role 的 10-20% 慢付戶
+- **Demo question**: "我們最舊的應收有多少？誰欠最久？"
+
+### 32. AP 全準時付款（demo 對照組）
+- 97 筆 AP 全 paid，提早 0-5 天付（demo 對照組，不放戲劇）
+- **Demo 反襯**: 如果問 "我們對供應商準時嗎？" → 答 yes，反襯出客戶端有戲
 
 ---
 

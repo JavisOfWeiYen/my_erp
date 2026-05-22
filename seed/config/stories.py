@@ -394,7 +394,7 @@ STOCK_ADJUST_EVENTS: Final[list[StockAdjustEvent]] = [
     {"month": "2025-11", "sku": "NV-4080S",     "quantity_delta": -2, "reason": "count_loss", "note": "盤點短少 2 張"},
     {"month": "2026-01", "sku": "WS-4500ADA",   "quantity_delta": -1, "reason": "damage",     "note": "客退損傷無法銷售"},
     {"month": "2026-02", "sku": "NV-5060",      "quantity_delta":  1, "reason": "count_gain", "note": "盤盈 1 張"},
-    {"month": "2026-04", "sku": "ACC-PSU-1200", "quantity_delta": -3, "reason": "damage",     "note": "倉儲水損 3 顆"},
+    {"month": "2026-04", "sku": "NV-4070",      "quantity_delta": -3, "reason": "damage",     "note": "倉儲水損 3 張"},
 ]
 
 
