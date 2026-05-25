@@ -230,6 +230,49 @@
   .badge-inline.confirmed { background: var(--ok-soft); color: #065F46; }
   .badge-inline.received { background: var(--ok-soft); color: #065F46; }
   .badge-inline.cancelled { background: var(--head-bg); color: var(--text-muted); }
+  .badge-inline.open { background: var(--warn-soft); color: #92400E; }
+  .badge-inline.partial { background: var(--accent-soft); color: #075985; }
+  .badge-inline.paid { background: var(--ok-soft); color: #065F46; }
+  .badge-inline.overdue { background: var(--danger-soft); color: #991B1B; }
+  .badge-inline.voided { background: var(--head-bg); color: var(--text-muted); text-decoration: line-through; }
+
+  /* Two parallel pipelines (purchase vs sales) */
+  .pipelines { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media (max-width: 720px) { .pipelines { grid-template-columns: 1fr; } }
+  .pipeline {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .pipeline h4 {
+    font-size: 13px; color: var(--text-soft); font-weight: 600;
+    margin-bottom: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .pipeline ol { list-style: none; padding-left: 0; counter-reset: pl; }
+  .pipeline ol li {
+    counter-increment: pl; padding: 6px 0 6px 32px; position: relative;
+    font-size: 13.5px; line-height: 1.55;
+  }
+  .pipeline ol li::before {
+    content: counter(pl); position: absolute; left: 0; top: 6px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--head-bg); color: var(--text-soft);
+    border: 1px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+  }
+  .pipeline ol li.terminal::before { background: var(--num-bg); color: var(--num-fg); border-color: var(--num-bg); }
+  .pipeline ol li small {
+    display: block; color: var(--text-muted); font-size: 12px; margin-top: 2px;
+  }
+
+  /* Mini fact-list (key = value rows) */
+  .facts {
+    display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px;
+    background: var(--head-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; margin: 12px 0; font-size: 13.5px;
+  }
+  .facts dt { color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+  .facts dd { color: var(--text); }
 </style>
 </head>
 <body>
@@ -237,7 +280,7 @@
 
 <header>
   <h1>進銷存系統 操作手冊</h1>
-  <div class="subtitle">給第一次用這個系統的人 · 一步一步照著做就會了 · 2026-05-14</div>
+  <div class="subtitle">給第一次用這個系統的人 · 一步一步照著做就會了 · 2026-05-25</div>
 </header>
 
 <div class="toc">
@@ -246,13 +289,16 @@
     <li><a href="#ch-start">第一次使用</a></li>
     <li><a href="#ch-layout">認識畫面</a></li>
     <li><a href="#ch-roles">角色和你能做什麼</a></li>
-    <li><a href="#ch-flow">每天大致在做什麼事</a></li>
+    <li><a href="#ch-flow">整體流程：進貨、銷貨、應收、應付怎麼串起來</a></li>
     <li><a href="#ch-category">商品分類</a></li>
     <li><a href="#ch-product">商品</a></li>
     <li><a href="#ch-supplier">供應商</a></li>
     <li><a href="#ch-purchase">進貨單</a></li>
     <li><a href="#ch-customer">客戶</a></li>
     <li><a href="#ch-sale">銷貨單</a></li>
+    <li><a href="#ch-ar">應收帳款（賣出去的錢還沒收）</a></li>
+    <li><a href="#ch-ap">應付帳款（買進來的錢還沒付）</a></li>
+    <li><a href="#ch-aging">帳齡分析（誰拖了多久）</a></li>
     <li><a href="#ch-inventory">查庫存</a></li>
     <li><a href="#ch-adjust">庫存調整（盤點）</a></li>
     <li><a href="#ch-report">月報表</a></li>
@@ -315,7 +361,18 @@
       <div class="mock-body" style="display:grid; grid-template-columns: 1fr 3fr; gap:10px;">
         <div style="background: var(--card); border: 1px solid var(--border); padding: 14px; min-height: 200px;">
           <div style="font-weight:600; margin-bottom:8px;">進銷存</div>
-          <div style="color: var(--text-muted); line-height:2;">首頁<br>商品管理<br>商品分類<br>供應商<br>進貨管理<br>客戶<br>銷貨管理<br>庫存查詢<br>報表<br>使用者管理</div>
+          <div style="color: var(--text-muted); line-height:1.8; font-size:12.5px;">
+            首頁<br>
+            <strong style="color: var(--text-soft);">業務系統</strong><br>
+            　客戶<br>　銷貨管理<br>
+            <strong style="color: var(--text-soft);">庫存系統</strong><br>
+            　商品 / 分類 / 供應商<br>　進貨管理 / 庫存查詢 / 庫存調整<br>
+            <strong style="color: var(--text-soft);">會計系統</strong><br>
+            　應收帳款<br>　應付帳款<br>　帳齡分析<br>
+            報表<br>
+            <strong style="color: var(--text-soft);">系統管理</strong>（僅管理員）<br>
+            　使用者 / 員工 / 選單
+          </div>
         </div>
         <div>
           <div style="background: var(--card); border: 1px solid var(--border); padding: 10px 14px; display:flex; justify-content:space-between;">
@@ -329,14 +386,14 @@
       </div>
     </div>
 
-    <h3>左側選單</h3>
+    <h3>左側選單（分四大區）</h3>
     <ul class="tight">
-      <li><strong>首頁</strong>：本月的總覽數字</li>
-      <li><strong>商品管理 / 商品分類</strong>：管理你店裡賣的東西</li>
-      <li><strong>供應商 / 進貨管理</strong>：從哪裡進貨、進了哪些東西</li>
-      <li><strong>客戶 / 銷貨管理</strong>：賣給誰、賣了什麼</li>
-      <li><strong>庫存查詢 / 報表</strong>：現在還有多少、上個月做了多少生意</li>
-      <li><strong>使用者管理</strong>：只有系統管理員看得到</li>
+      <li><strong>首頁</strong>：本月銷貨額、進貨額、低庫存品項的總覽卡片。</li>
+      <li><strong>業務系統</strong>：客戶、銷貨管理 — 對「外面要付錢給你的客戶」這條線。</li>
+      <li><strong>庫存系統</strong>：商品 / 分類 / 供應商 / 進貨管理 / 庫存查詢 / 庫存調整 — 管「實際東西在不在倉庫」這件事。</li>
+      <li><strong>會計系統</strong>：應收帳款、應付帳款、帳齡分析 — 「誰還欠我多少 / 我還欠誰多少 / 拖了多久」。</li>
+      <li><strong>報表</strong>：某個月每樣商品的進銷情況、可以匯出 Excel。</li>
+      <li><strong>系統管理</strong>：使用者、員工、選單管理 — 只有系統管理員看得到。</li>
     </ul>
     <p class="sub" style="color: var(--text-muted); font-size: 13px;">看不到某個選單？那表示你的角色沒有那個權限，是正常的。</p>
 
@@ -365,10 +422,17 @@
     <p class="lead">每個人有一個角色，角色決定你能看什麼、做什麼。共四種：</p>
 
     <ul class="tight">
-      <li><span class="role admin">admin 系統管理員</span> 全部都能做，只有他能新增 / 刪除帳號。</li>
-      <li><span class="role manager">manager 主管</span> 可以管商品、開進貨單、開銷貨單、確認入庫、確認出貨。</li>
-      <li><span class="role sales">sales 業務</span> 可以開銷貨單、確認出貨；商品和進貨只能看。</li>
-      <li><span class="role warehouse">warehouse 倉管</span> 可以「確認入庫」進貨單；其他大部分只能看。</li>
+      <li><span class="role admin">admin 系統管理員</span> 全部都能做，只有他能新增 / 刪除帳號。應收應付都能收/付款。</li>
+      <li><span class="role manager">manager 主管</span> 可以管商品、開進貨單、開銷貨單、確認入庫、確認出貨；可以幫客戶記應收收款、付供應商應付付款。</li>
+      <li><span class="role sales">sales 業務</span> 可以開銷貨單、確認出貨、記應收收款（客戶付錢進來）；商品、進貨、付供應商只能看。</li>
+      <li><span class="role warehouse">warehouse 倉管</span> 可以「確認入庫」進貨單；其他大部分只能看，<strong>不能收/付款</strong>。</li>
+    </ul>
+
+    <h3>誰能在「應收」「應付」按收款 / 付款？</h3>
+    <ul class="tight">
+      <li><strong>應收收款</strong>（客戶付錢給你）：<span class="role admin">admin</span><span class="role manager">manager</span><span class="role sales">sales</span></li>
+      <li><strong>應付付款</strong>（你付錢給供應商）：<span class="role admin">admin</span><span class="role manager">manager</span>（業務不能付供應商的錢）</li>
+      <li><strong>查看清單、明細、帳齡</strong>：四種角色都可以看。</li>
     </ul>
 
     <div class="callout warn">
@@ -384,39 +448,85 @@
 <details class="chapter">
   <summary>
     <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
-    <span class="num">4</span><span class="title">每天大致在做什麼事</span>
+    <span class="num">4</span><span class="title">整體流程：進貨、銷貨、應收、應付怎麼串起來</span>
   </summary>
   <div class="body">
-    <p class="lead">系統其實只在做一件事：「東西進來」→「庫存增加」→「賣出去」→「庫存減少」。</p>
+    <p class="lead">系統在做兩條平行的事 — 一條是<strong>東西的流向</strong>（進來、賣出去），一條是<strong>錢的流向</strong>（誰欠你錢、你欠誰錢）。兩條線在「確認」那一刻會自動接起來。</p>
 
-    <div class="flow">
-      <div class="step">
-        <div class="h">Step 1</div><div class="t">建立進貨單</div>
+    <h3>一張圖看懂</h3>
+    <div class="pipelines">
+      <div class="pipeline">
+        <h4>進貨這條線（你付錢給供應商）</h4>
+        <ol>
+          <li><strong>建立進貨單</strong>（<span class="badge-inline draft">草稿</span>）
+            <small>跟供應商談好的訂單。此時還沒進庫存、也還不欠錢。</small>
+          </li>
+          <li><strong>確認入庫</strong>（<span class="badge-inline received">已入庫</span>）
+            <small>貨真的到了倉庫。系統做三件事：庫存↑、商品成本更新、<strong>自動產生一張應付帳款</strong>。</small>
+          </li>
+          <li class="terminal"><strong>應付帳款</strong>（<span class="badge-inline open">未付</span>）
+            <small>編號 <code>AP-…</code>。到期日 = 入庫日 + 供應商的「付款條件天數」。</small>
+          </li>
+          <li><strong>記一筆付款</strong>
+            <small>到「應付帳款」找到那張，按「記錄付款」。可以分次付。</small>
+          </li>
+          <li class="terminal"><strong>付完了</strong>（<span class="badge-inline paid">已付清</span>）
+            <small>付清後狀態自動變成已付清；中間還沒付清是 <span class="badge-inline partial">部分付款</span>。</small>
+          </li>
+        </ol>
       </div>
-      <div class="arrow">→</div>
-      <div class="step">
-        <div class="h">Step 2</div><div class="t">確認入庫<br><span style="color:var(--text-muted); font-weight:400; font-size:12px;">庫存 ↑</span></div>
-      </div>
-      <div class="arrow">→</div>
-      <div class="step">
-        <div class="h">Step 3</div><div class="t">建立銷貨單</div>
-      </div>
-      <div class="arrow">→</div>
-      <div class="step">
-        <div class="h">Step 4</div><div class="t">確認出貨<br><span style="color:var(--text-muted); font-weight:400; font-size:12px;">庫存 ↓</span></div>
+
+      <div class="pipeline">
+        <h4>銷貨這條線（客戶付錢給你）</h4>
+        <ol>
+          <li><strong>建立銷貨單</strong>（<span class="badge-inline draft">草稿</span>）
+            <small>客戶下單。此時還沒扣庫存、客戶也還沒欠你錢。</small>
+          </li>
+          <li><strong>確認出貨</strong>（<span class="badge-inline confirmed">已出貨</span>）
+            <small>真的把貨交出去了。系統做兩件事：庫存↓、<strong>自動產生一張應收帳款</strong>。</small>
+          </li>
+          <li class="terminal"><strong>應收帳款</strong>（<span class="badge-inline open">未收</span>）
+            <small>編號 <code>AR-…</code>。到期日 = 出貨日 + 客戶的「付款條件天數」。</small>
+          </li>
+          <li><strong>記一筆收款</strong>
+            <small>客戶付錢來了，到「應收帳款」找到那張，按「記錄收款」。可分次。</small>
+          </li>
+          <li class="terminal"><strong>收完了</strong>（<span class="badge-inline paid">已收齊</span>）
+            <small>收齊後狀態自動變已收齊；中間是 <span class="badge-inline partial">部分收款</span>。</small>
+          </li>
+        </ol>
       </div>
     </div>
 
-    <p>進貨單跟銷貨單都是「兩階段」：</p>
+    <h3>關鍵觀念（這幾點搞懂就會用了）</h3>
     <ul class="tight">
-      <li>先建立一張<span class="badge-inline draft">草稿</span>（這時候還沒影響庫存）</li>
-      <li>確認後變成<span class="badge-inline received">已入庫</span>或<span class="badge-inline confirmed">已出貨</span>，這時候庫存才會動。</li>
-      <li>不要的單可以變<span class="badge-inline cancelled">已取消</span>，但只有<span class="badge-inline draft">草稿</span>能取消。</li>
+      <li><strong>「確認」那一刻是關鍵</strong>。在進貨單按「確認入庫」、銷貨單按「確認出貨」之前，<u>不會</u>產生應付 / 應收，也<u>不會</u>動庫存。確認之後就鎖住了。</li>
+      <li><strong>應收 / 應付不能自己手動建</strong>。它們是進貨單 / 銷貨單「確認」時系統自動產生的，每張進貨單對到一張應付、每張銷貨單對到一張應收。</li>
+      <li><strong>進貨單 / 銷貨單沒辦法直接刪除</strong>已確認的單。如果發現應收應付有問題，要從原始的進貨 / 銷貨單去釐清，或建反向單沖掉（找主管）。</li>
+      <li><strong>「付款條件天數」是預設值</strong>。每個客戶 / 供應商身上都有一個（預設 30 天），可以個別調。改了之後只會影響「之後」新產生的應收應付，不會回頭改舊的。</li>
+      <li><strong>稅</strong>系統固定算 5% 營業稅。建單時可以選「<u>含稅</u>」或「<u>未稅</u>」— 含稅表示你填的金額已經含稅，系統會反推未稅金額；未稅就是把稅加上去。應收應付上會看到三欄：未稅、稅額、含稅總額。</li>
     </ul>
+
+    <h3>一個具體例子</h3>
+    <div class="callout tip">
+      <span class="label">舉例</span>
+      5/01 客戶「永豐行」下單買 100 瓶可樂 = $5,250（含稅）。<br>
+      5/02 你按「確認出貨」 →
+      系統扣 100 瓶庫存，自動產生應收 <code>AR-20260502-0001</code>，金額 $5,250，到期日 = 5/02 + 30 天 = 6/01。<br>
+      5/15 客戶先付 $3,000 → 你在應收明細按「記錄收款」填 3,000，狀態變成 <span class="badge-inline partial">部分收款</span>，未收餘額 $2,250。<br>
+      6/05 客戶才付剩下 $2,250 → 再記一筆，狀態變 <span class="badge-inline paid">已收齊</span>。<br>
+      因為 6/01 已過、6/05 才付清，這段期間在「帳齡分析」會被算進「逾期 1-30 天」桶（直到付清為止）。
+    </div>
+
+    <h3>狀態快速對照</h3>
+    <dl class="facts">
+      <dt>進貨單 / 銷貨單</dt><dd><span class="badge-inline draft">草稿</span> → <span class="badge-inline received">已入庫</span> / <span class="badge-inline confirmed">已出貨</span> （或 <span class="badge-inline cancelled">已取消</span> 只能在草稿時）</dd>
+      <dt>應收 / 應付</dt><dd><span class="badge-inline open">未付/未收</span> → <span class="badge-inline partial">部分</span> → <span class="badge-inline paid">付清/收齊</span>（已過到期日會多一個 <span class="badge-inline overdue">逾期</span> 紅標）</dd>
+    </dl>
 
     <div class="callout tip">
       <span class="label">記住</span>
-      <strong>只有草稿才能改</strong>。一旦確認入庫或出貨就鎖住了 — 因為這時候已經影響庫存，亂改會錯亂。
+      <strong>只有草稿才能改</strong>。一旦確認入庫或出貨就鎖住了 — 因為這時候已經影響庫存跟帳款，亂改會錯亂。應收 / 應付本身的金額也不能改，只能透過「記錄收/付款」或「作廢付款」來調整。
     </div>
   </div>
 </details>
@@ -508,12 +618,15 @@
       <li><strong>右上角點 <span class="btn-look">+ 新增</span></strong></li>
       <li><strong>填供應商名稱</strong><div class="sub">這欄是必填，名稱不能跟既有的重複。</div></li>
       <li><strong>聯絡人、電話、Email、地址、統編、備註</strong><div class="sub">能填就填，方便日後對帳。</div></li>
+      <li><strong>付款條件（天）</strong>
+        <div class="sub">這欄很重要。它決定了之後每張「進貨單入庫」自動產生的應付帳款「到期日」要算幾天 — 例如填 30，5/01 入庫就 5/31 到期。預設 30 天，跟供應商談好月結 60 就填 60。<strong>改了之後只影響未來新進貨</strong>，不會回頭改舊應付。</div>
+      </li>
       <li><strong>按 <span class="btn-look">儲存</span></strong></li>
     </ol>
 
     <div class="callout tip">
       <span class="label">小提示</span>
-      如果某個供應商已經不再合作，不要刪掉（會找不到歷史進貨單），把「狀態」改成停用就好。
+      如果某個供應商已經不再合作，不要刪掉（會找不到歷史進貨單、歷史應付），把「狀態」改成停用就好。
     </div>
   </div>
 </details>
@@ -528,20 +641,25 @@
     <span class="roles"><span class="role admin">admin</span><span class="role manager">manager</span><span class="role warehouse">warehouse</span></span>
   </summary>
   <div class="body">
-    <p class="lead">進貨單是「向供應商買東西」的紀錄。流程：開單 → 等貨到 → 確認入庫（這時候庫存才增加）。</p>
+    <p class="lead">進貨單是「向供應商買東西」的紀錄。流程：開單 → 等貨到 → 確認入庫（這時候庫存才增加，<strong>也才會自動產生應付帳款</strong>）。</p>
 
     <h3>Step 1 — 開一張進貨單（草稿）</h3>
     <p style="color:var(--text-muted); font-size:13px;">角色：<span class="role admin">admin</span><span class="role manager">manager</span></p>
     <ol class="steps">
       <li><strong>左側選單點「進貨管理」</strong></li>
       <li><strong>右上角點 <span class="btn-look">+ 新增</span></strong></li>
-      <li><strong>選供應商</strong></li>
+      <li><strong>選供應商</strong>
+        <div class="sub">選完後系統會用這家供應商身上設定的「付款條件天數」來算之後的應付到期日。</div>
+      </li>
       <li><strong>加進貨項目</strong>
         <div class="sub">每一列填：商品、數量、單價。可以點「新增一項」加更多商品。</div>
       </li>
+      <li><strong>含稅 / 未稅切換</strong>
+        <div class="sub">如果你填的單價已經是含稅價，勾「含稅」；如果是未稅價，不勾（系統會自動加 5%）。畫面下方會即時顯示「未稅／稅額／含稅總額」三個數字，讓你確認跟對方對得起來。</div>
+      </li>
       <li><strong>備註（可不填）</strong></li>
       <li><strong>按 <span class="btn-look">儲存</span></strong>
-        <div class="sub">系統會給這張單一個編號，像 <code>PO-20260514-0001</code>。狀態是<span class="badge-inline draft">草稿</span>。</div>
+        <div class="sub">系統會給這張單一個編號，像 <code>PO-20260514-0001</code>。狀態是<span class="badge-inline draft">草稿</span>。<strong>還沒影響庫存、也還沒產生應付。</strong></div>
       </li>
     </ol>
 
@@ -552,10 +670,11 @@
       <li><strong>點綠色勾勾「確認入庫」</strong></li>
       <li><strong>確認對話框出現後按 <span class="btn-look">確認</span></strong></li>
     </ol>
-    <p>狀態變成<span class="badge-inline received">已入庫</span>，這時候：</p>
+    <p>狀態變成<span class="badge-inline received">已入庫</span>，這一刻系統會「<strong>一次做三件事</strong>」：</p>
     <ul class="tight">
       <li>每樣商品的「庫存量」會自動加上這張單的數量。</li>
-      <li>每樣商品的「成本」會被更新為這張單的單價（系統會記住最新成本）。</li>
+      <li>每樣商品的「成本」會被更新為這張單的單價（系統記住最新成本）。</li>
+      <li><strong>自動產生一張應付帳款</strong>（編號 <code>AP-YYYYMMDD-####</code>），狀態 <span class="badge-inline open">未付</span>，到期日 = 入庫日 + 供應商「付款條件天數」。可以到「應付帳款」頁面去看 / 記付款。</li>
     </ul>
 
     <h3>不要的單怎麼處理</h3>
@@ -563,7 +682,7 @@
 
     <div class="callout danger">
       <span class="label">不能改</span>
-      <span class="badge-inline received">已入庫</span>的進貨單不能再修改也不能取消。如果有錯，請建一張新的反向進貨單（負數量？不行）或新銷貨單把錯誤的量出掉 — 詳細請問主管。
+      <span class="badge-inline received">已入庫</span>的進貨單不能再修改也不能取消，因為它已經牽動庫存 + 應付帳款。如果發現有錯，找主管處理 — 通常會用「庫存調整」沖掉錯誤的數量，並在備註寫明原因。
     </div>
   </div>
 </details>
@@ -586,6 +705,9 @@
       <li><strong>右上角點 <span class="btn-look">+ 新增</span></strong></li>
       <li><strong>填客戶名稱</strong><div class="sub">必填，名稱不能跟既有的重複。</div></li>
       <li><strong>聯絡人、電話、Email、地址、統編、備註（看需要填）</strong></li>
+      <li><strong>付款條件（天）</strong>
+        <div class="sub">這欄決定之後「銷貨單確認出貨」自動產生的應收帳款「到期日」要算幾天。預設 30。月結 60 就填 60、貨到付款就填 0。<strong>改了之後只影響未來新銷貨</strong>，不會回頭改舊應收。</div>
+      </li>
       <li><strong>按 <span class="btn-look">儲存</span></strong></li>
     </ol>
   </div>
@@ -601,21 +723,26 @@
     <span class="roles"><span class="role admin">admin</span><span class="role manager">manager</span><span class="role sales">sales</span></span>
   </summary>
   <div class="body">
-    <p class="lead">銷貨單是「賣東西給客戶」的紀錄。流程跟進貨單一樣分兩階段：開單 → 確認出貨（這時候庫存才減少）。</p>
+    <p class="lead">銷貨單是「賣東西給客戶」的紀錄。流程跟進貨單一樣分兩階段：開單 → 確認出貨（這時候庫存才減少，<strong>也才會自動產生應收帳款</strong>）。</p>
 
     <h3>Step 1 — 開一張銷貨單（草稿）</h3>
     <ol class="steps">
       <li><strong>左側選單點「銷貨管理」</strong></li>
       <li><strong>右上角點 <span class="btn-look">+ 新增</span></strong></li>
-      <li><strong>選客戶</strong></li>
+      <li><strong>選客戶</strong>
+        <div class="sub">選完後系統會用這個客戶身上設定的「付款條件天數」來算之後的應收到期日。</div>
+      </li>
       <li><strong>選業務員</strong>
         <div class="sub">「業務員」是業績歸屬，跟「實際在輸入這張單的人」可能不同（例如主管幫業務 A 鍵單，業務員選 A）。如果你自己就是業務員角色，系統會預設選你自己。</div>
       </li>
       <li><strong>加銷貨項目</strong>
         <div class="sub">選商品時，單價會自動帶入商品本身的售價，可以再改。如果數量超過目前庫存，數量欄會變紅提醒你 — 但這時還沒扣庫存，存草稿不會被擋。</div>
       </li>
+      <li><strong>含稅 / 未稅切換</strong>
+        <div class="sub">跟進貨單一樣 — 看你給客戶的報價是含稅還是未稅就勾對應的。下方會即時顯示「未稅／稅額／含稅總額」。</div>
+      </li>
       <li><strong>按 <span class="btn-look">儲存</span></strong>
-        <div class="sub">系統會給這張單一個編號，像 <code>SO-20260514-0001</code>。狀態是<span class="badge-inline draft">草稿</span>。</div>
+        <div class="sub">系統會給這張單一個編號，像 <code>SO-20260514-0001</code>。狀態是<span class="badge-inline draft">草稿</span>。<strong>還沒扣庫存、也還沒產生應收。</strong></div>
       </li>
     </ol>
 
@@ -625,10 +752,10 @@
       <li><strong>點綠色勾勾「確認出貨」</strong></li>
       <li><strong>確認對話框出現後按 <span class="btn-look">確認</span></strong></li>
     </ol>
-    <p>狀態變成<span class="badge-inline confirmed">已出貨</span>。系統會：</p>
+    <p>狀態變成<span class="badge-inline confirmed">已出貨</span>。這一刻系統會「<strong>一次做兩件事</strong>」：</p>
     <ul class="tight">
-      <li>檢查每個商品庫存是否夠 — 任何一個不夠都會整張單都不能出，並顯示哪些不夠多少。</li>
-      <li>如果都夠，把每個商品的庫存量扣掉。</li>
+      <li>先檢查每個商品庫存是否夠 — 任何一個不夠都會<u>整張單都不能出</u>，並顯示哪些差多少。都夠的話，把每個商品的庫存量扣掉。</li>
+      <li><strong>自動產生一張應收帳款</strong>（編號 <code>AR-YYYYMMDD-####</code>），狀態 <span class="badge-inline open">未收</span>，到期日 = 出貨日 + 客戶「付款條件天數」。可以到「應收帳款」頁面去看 / 記收款。</li>
     </ul>
 
     <div class="callout warn">
@@ -644,12 +771,155 @@
 </details>
 
 
-<!-- ============================== 11. 庫存 ============================== -->
+<!-- ============================== 11. 應收帳款 ============================== -->
+<span class="anchor" id="ch-ar"></span>
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="num">11</span><span class="title">應收帳款（賣出去的錢還沒收）</span>
+    <span class="roles"><span class="role admin">admin</span><span class="role manager">manager</span><span class="role sales">sales</span></span>
+  </summary>
+  <div class="body">
+    <p class="lead">「應收帳款」是客戶欠你的錢的清單。<strong>它不是手動建的</strong> — 每次「銷貨單確認出貨」系統就會自動生一張。你在這頁要做的事就是：看清單、記客戶付了多少、看誰逾期了。</p>
+
+    <h3>畫面有什麼</h3>
+    <ul class="tight">
+      <li><strong>清單</strong>：應收編號（<code>AR-YYYYMMDD-####</code>）、對應的銷貨單編號、客戶、未稅金額、稅額、含稅總額、未收餘額、狀態、到期日。</li>
+      <li><strong>過濾器</strong>：搜尋（按應收編號）、客戶、狀態、「只看逾期」開關。</li>
+      <li><strong>頂部統計</strong>：當前清單裡所有應收的「總金額」與「未收餘額」。打開「只看逾期」就會變成逾期金額總計。</li>
+      <li><strong>狀態</strong>：<span class="badge-inline open">未收</span> / <span class="badge-inline partial">部分收款</span> / <span class="badge-inline paid">已收齊</span> / <span class="badge-inline voided">作廢</span>。逾期會多一個紅色 <span class="badge-inline overdue">逾期</span> chip。</li>
+    </ul>
+
+    <h3>記一筆收款（客戶付錢進來時）</h3>
+    <p style="color:var(--text-muted); font-size:13px;">角色：<span class="role admin">admin</span><span class="role manager">manager</span><span class="role sales">sales</span></p>
+    <ol class="steps">
+      <li><strong>在清單找到那筆應收</strong><div class="sub">可以用客戶過濾或搜尋編號。</div></li>
+      <li><strong>點眼睛圖示「檢視」</strong>
+        <div class="sub">會跳出明細：客戶、對應銷貨單、開立時間、到期日、未稅/稅額/總額、已收/未收餘額、以及這張應收的所有收款紀錄。</div>
+      </li>
+      <li><strong>點「記錄收款」按鈕</strong>
+        <div class="sub">如果這張已經 <span class="badge-inline paid">已收齊</span> 或 <span class="badge-inline voided">作廢</span>，按鈕不會出現。</div>
+      </li>
+      <li><strong>填收款資訊</strong>
+        <div class="sub">
+          • <strong>金額</strong>：預設帶入未收餘額，可以改成更少（分次收）。<u>不能超過餘額</u>。<br>
+          • <strong>方式</strong>：現金 / 銀行轉帳 / 支票 / 其他。<br>
+          • <strong>收款日期</strong>：預設今天，可改。<br>
+          • <strong>參考號</strong>（選填）：例如轉帳交易序號、支票號碼。<br>
+          • <strong>備註</strong>（選填）：對帳用。
+        </div>
+      </li>
+      <li><strong>按 <span class="btn-look">儲存</span></strong>
+        <div class="sub">收款編號自動產生 <code>REC-YYYYMMDD-####</code>。應收的「未收餘額」會自動更新；如果剛好收齊，狀態自動跳 <span class="badge-inline paid">已收齊</span>；中途就是 <span class="badge-inline partial">部分收款</span>。</div>
+      </li>
+    </ol>
+
+    <h3>不小心記錯了 — 作廢一筆收款</h3>
+    <p>在明細視窗的「收款紀錄」表格，每一筆右邊有個紅色「作廢」按鈕。</p>
+    <ol class="steps">
+      <li><strong>按「作廢」</strong></li>
+      <li><strong>填作廢原因</strong><div class="sub">建議寫清楚，例如「客戶要求退回此筆、改用 5/20 那筆」。</div></li>
+      <li><strong>確認</strong>
+        <div class="sub">那筆紀錄不會被刪掉（審計留底），而是被劃掉並標 <span class="badge-inline voided">作廢</span>；應收的未收餘額會回補，狀態也會自動回算（可能從 paid 退回 partial 或 open）。</div>
+      </li>
+    </ol>
+
+    <div class="callout danger">
+      <span class="label">注意</span>
+      應收帳款的金額本身<strong>不能直接改</strong>，也沒有「刪除應收」按鈕。如果應收金額有錯，根本原因通常在原始銷貨單 — 找主管處理。若是收款記錯了，用「作廢」沖掉、重記一筆才對。
+    </div>
+  </div>
+</details>
+
+
+<!-- ============================== 12. 應付帳款 ============================== -->
+<span class="anchor" id="ch-ap"></span>
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="num">12</span><span class="title">應付帳款（買進來的錢還沒付）</span>
+    <span class="roles"><span class="role admin">admin</span><span class="role manager">manager</span></span>
+  </summary>
+  <div class="body">
+    <p class="lead">「應付帳款」是你欠供應商的錢的清單，跟「應收」是鏡像關係。每次「進貨單確認入庫」系統就會自動生一張。</p>
+
+    <h3>畫面有什麼</h3>
+    <ul class="tight">
+      <li><strong>清單</strong>：應付編號（<code>AP-YYYYMMDD-####</code>）、對應的進貨單編號、供應商、未稅/稅額/含稅總額、未付餘額、狀態、到期日。</li>
+      <li><strong>過濾器</strong>：搜尋（按應付編號）、供應商、狀態、「只看逾期」開關。</li>
+      <li><strong>頂部統計</strong>：清單上應付的總金額與未付餘額。</li>
+    </ul>
+
+    <h3>記一筆付款（你付錢給供應商時）</h3>
+    <p style="color:var(--text-muted); font-size:13px;">角色：<span class="role admin">admin</span><span class="role manager">manager</span>（業務不行）</p>
+    <ol class="steps">
+      <li><strong>在清單找到那筆應付</strong></li>
+      <li><strong>點眼睛圖示「檢視」</strong>
+        <div class="sub">明細：供應商、對應進貨單、開立時間、到期日、金額拆解、已付/未付餘額、付款紀錄。</div>
+      </li>
+      <li><strong>點「記錄付款」按鈕</strong></li>
+      <li><strong>填付款資訊</strong>
+        <div class="sub">金額（不能超過餘額、預設帶入未付餘額）、方式（現金/轉帳/支票/其他）、付款日期、參考號（轉帳序號、支票號碼）、備註。</div>
+      </li>
+      <li><strong>按 <span class="btn-look">儲存</span></strong>
+        <div class="sub">付款編號自動產生 <code>PAY-YYYYMMDD-####</code>。應付未付餘額更新，狀態自動跳。</div>
+      </li>
+    </ol>
+
+    <h3>作廢付款</h3>
+    <p>跟應收一樣 — 在付款紀錄列按「作廢」並填原因。原紀錄會被劃掉留底，未付餘額回補，狀態自動回算。</p>
+
+    <div class="callout tip">
+      <span class="label">分次付 / 合單付</span>
+      系統「每張進貨單對到一張應付」，所以如果一張匯款想沖掉好幾張應付，需要一張一張分別記。建議在「參考號」欄位都填同一個轉帳序號方便事後對帳。
+    </div>
+  </div>
+</details>
+
+
+<!-- ============================== 13. 帳齡分析 ============================== -->
+<span class="anchor" id="ch-aging"></span>
+<details class="chapter">
+  <summary>
+    <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
+    <span class="num">13</span><span class="title">帳齡分析（誰拖了多久）</span>
+    <span class="roles"><span class="role admin">admin</span><span class="role manager">manager</span><span class="role sales">sales</span><span class="role warehouse">warehouse</span></span>
+  </summary>
+  <div class="body">
+    <p class="lead">把所有「還沒付清的應收 / 應付」按「離到期日多久」分成五桶，幫你一眼看出哪些客戶最該催、哪些供應商欠最久。</p>
+
+    <h3>怎麼看</h3>
+    <ol class="steps">
+      <li><strong>左側選單「會計系統」→「帳齡分析」</strong></li>
+      <li><strong>選分頁</strong>：「應收帳齡」（客戶欠你）或「應付帳齡」（你欠供應商）。</li>
+      <li><strong>選「截止日」</strong>：預設今天。改成 5/31 就是「假設今天是 5/31 的話」的帳齡。</li>
+    </ol>
+
+    <h3>五個桶代表什麼</h3>
+    <dl class="facts">
+      <dt>未到期</dt><dd>到期日還沒到 — 正常範圍，不用催。</dd>
+      <dt>1-30 天</dt><dd>過了到期日 1 到 30 天 — 開始該提醒。</dd>
+      <dt>31-60 天</dt><dd>過了到期日 31 到 60 天 — 要積極催了。</dd>
+      <dt>61-90 天</dt><dd>過了 61 到 90 天 — 信用拉警報。</dd>
+      <dt>90 天以上</dt><dd>超過 90 天 — 通常已經是呆帳風險。</dd>
+    </dl>
+
+    <p>每一列是一個客戶（或供應商），把他名下所有未付清的應收/應付的「未收/未付餘額」依到期日分到對應的桶。表格按金額大小排序，<strong>最該關心的會排在最上面</strong>。</p>
+
+    <div class="callout tip">
+      <span class="label">已收齊 / 已付清的不會出現</span>
+      帳齡只看「還沒結清」的單。一旦付清，那筆就從帳齡裡消失了。
+    </div>
+  </div>
+</details>
+
+
+<!-- ============================== 14. 庫存 ============================== -->
 <span class="anchor" id="ch-inventory"></span>
 <details class="chapter">
   <summary>
     <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
-    <span class="num">11</span><span class="title">查庫存</span>
+    <span class="num">14</span><span class="title">查庫存</span>
     <span class="roles"><span class="role admin">admin</span><span class="role manager">manager</span><span class="role sales">sales</span><span class="role warehouse">warehouse</span></span>
   </summary>
   <div class="body">
@@ -681,7 +951,7 @@
 <details class="chapter">
   <summary>
     <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
-    <span class="num">12</span><span class="title">庫存調整（盤點）</span>
+    <span class="num">15</span><span class="title">庫存調整（盤點）</span>
     <span class="roles"><span class="role admin">admin</span><span class="role manager">manager</span><span class="role warehouse">warehouse</span></span>
   </summary>
   <div class="body">
@@ -736,7 +1006,7 @@
 <details class="chapter">
   <summary>
     <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
-    <span class="num">13</span><span class="title">月報表</span>
+    <span class="num">16</span><span class="title">月報表</span>
     <span class="roles"><span class="role admin">admin</span><span class="role manager">manager</span><span class="role sales">sales</span><span class="role warehouse">warehouse</span></span>
   </summary>
   <div class="body">
@@ -766,7 +1036,7 @@
 <details class="chapter">
   <summary>
     <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
-    <span class="num">14</span><span class="title">使用者帳號（系統管理員專用）</span>
+    <span class="num">17</span><span class="title">使用者帳號（系統管理員專用）</span>
     <span class="roles"><span class="role admin">admin</span></span>
   </summary>
   <div class="body">
@@ -808,7 +1078,7 @@
 <details class="chapter">
   <summary>
     <svg class="caret" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,3 11,8 5,13"/></svg>
-    <span class="num">15</span><span class="title">遇到問題怎麼辦</span>
+    <span class="num">18</span><span class="title">遇到問題怎麼辦</span>
   </summary>
   <div class="body">
 
@@ -816,10 +1086,27 @@
     <ul class="tight">
       <li><strong>還是<span class="badge-inline draft">草稿</span>狀態</strong>：點鉛筆編輯就能改。</li>
       <li><strong>已經<span class="badge-inline received">已入庫</span>／<span class="badge-inline confirmed">已出貨</span></strong>：不能改了。找主管處理。</li>
+      <li><strong>應收 / 應付金額看起來怪怪的</strong>：金額是從進貨單 / 銷貨單來的，要從原始那張單查根本原因；單筆收/付款記錯就用「作廢」沖掉、重記。</li>
     </ul>
 
     <h3>確認出貨時被擋住，說庫存不夠</h3>
     <p>系統會告訴你哪幾個商品差多少。先去進貨單那邊建單、確認入庫補貨，再回來確認這張銷貨單。</p>
+
+    <h3>為什麼我銷貨單按了確認，但「應收帳款」清單沒看到？</h3>
+    <ul class="tight">
+      <li>檢查銷貨單狀態真的是 <span class="badge-inline confirmed">已出貨</span> 嗎？只有確認後才會產生應收。</li>
+      <li>應收清單預設按建立時間倒序，最新的應在最上面。也可以用客戶過濾或搜尋對應的 <code>AR-…</code> 編號。</li>
+      <li>確認權限：四種角色都能看應收，但 <span class="role warehouse">warehouse</span> 看不到「記錄收款」按鈕，這正常。</li>
+    </ul>
+
+    <h3>「付款條件」改了之後，舊的應收應付會跟著改到期日嗎？</h3>
+    <p><strong>不會。</strong>到期日是「確認入庫 / 出貨」那一刻算好寫進該張應收應付的，之後就不會變。改客戶/供應商上的天數只影響「之後新產生」的應收應付。</p>
+
+    <h3>含稅 / 未稅選錯了，現在已經確認了怎麼辦？</h3>
+    <p>已確認的單不能改。如果差異不大就在備註裡寫清楚事後手動對帳；金額影響大的話找主管，可能要建反向單沖銷。下次建單前再確認一次。</p>
+
+    <h3>客戶要分次付款，怎麼處理？</h3>
+    <p>就在同一張應收上「記錄收款」記幾次。每次填當次實收金額，未收餘額會逐步降到 0。狀態會從 <span class="badge-inline open">未收</span> → <span class="badge-inline partial">部分收款</span> → <span class="badge-inline paid">已收齊</span>。應付也是一樣道理。</p>
 
     <h3>「業務員」跟「建單者」有什麼差別？</h3>
     <ul class="tight">
@@ -849,7 +1136,7 @@
 
 
 <footer>
-  系統版本 v1.0 · MVP 完成於 2026-05-14 · 後台 <code>/api/v1/docs</code> 有完整 API 文件
+  系統版本 v1.1 · 新增應收應付章節 2026-05-25 · 後台 <code>/api/v1/docs</code> 有完整 API 文件
 </footer>
 
 </div>
