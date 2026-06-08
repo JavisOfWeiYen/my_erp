@@ -1,7 +1,7 @@
 # Schema & Query Cheatsheet
 
 `my_erp` 的表結構、查詢眉角、HTTP endpoint 對照表。需要寫 SQL 或挑
-endpoint 時 Read 這份。完整 schema 用 `sqlite3 seed.db ".schema <table>"`
+endpoint 時 Read 這份。完整 schema 用 `sqlite3 {baseDir}/seed.db ".schema <table>"`
 撈，本檔只列 demo 用得到的部分。
 
 ---
@@ -133,7 +133,7 @@ Append-only、不能編輯刪除。
    ((soi.unit_price - soi.unit_cost) / soi.unit_price) * 100 AS margin_rate_pct
    ```
    - 只有 `status='confirmed'` 的 SO，其 `unit_cost` 才非 NULL
-   - **`unit_cost` 是 confirm 當下的 snapshot**，不會跟著 `products.cost_price` 漲跌。這是 H100 / NV-5070 漲價劇本能演出來的關鍵。
+   - **`unit_cost` 是 confirm 當下的 snapshot**，不會跟著 `products.cost_price` 漲跌。所以做歷史毛利分析時要用 `soi.unit_cost`，不要用 `products.cost_price`（後者只是最新進價）。
    - 若要算「整張 SO 的整體毛利率」必須先 sum subtotal 跟 sum (unit_cost*qty) 再相除，不要平均 row 級的 margin_rate。
 
 2. **AR / AP balance**（餘額）

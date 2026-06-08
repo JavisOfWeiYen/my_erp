@@ -39,6 +39,9 @@ pip-delete-this-directory.txt
 backend/app.db
 backend/*.db-journal
 
+# ---- OpenClaw skill distribution bundle (derived; regenerate via README) ----
+seed/skills/*.zip
+
 # ---- Alembic side files (keep versions/, drop temp) -------------
 backend/alembic/versions/__pycache__/
 
